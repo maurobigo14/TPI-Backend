@@ -1,7 +1,16 @@
 package org.example.repository;
 
+import org.example.model.Contenedor;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
-public class ContenedorRepository {
+public interface ContenedorRepository extends JpaRepository<Contenedor, Long> {
 
+    Optional<Contenedor> findByIdentificador(String identificador);
+    
+    List<Contenedor> findByEstado(String estado);
 }
+
