@@ -11,5 +11,5 @@ public interface CamionRepository extends JpaRepository<Camion, Long> {
 
     Optional<Camion> findByDominio(String dominio);
 
-    List<Contenedor> findByEstado(String estado);
+    List<Camion> findByDisponibilidad(Boolean disponibilidad);
 }

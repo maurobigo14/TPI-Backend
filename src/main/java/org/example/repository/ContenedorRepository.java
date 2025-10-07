@@ -9,8 +9,8 @@ import java.util.Optional;
 @Repository
 public interface ContenedorRepository extends JpaRepository<Contenedor, Long> {
 
-    Optional<Contenedor> findByIdentificador(String identificador);
-    
+    Optional<Contenedor> findByIdentificacion(String identificacion);
+
     List<Contenedor> findByEstado(String estado);
 }
 
