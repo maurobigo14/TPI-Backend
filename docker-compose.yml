@@ -1,7 +1,15 @@
 version: '3.8'
 
 services:
-  # API Gateway
+  # 🧭 Eureka Server (Registro de servicios)
+  eureka-server:
+    build: ./eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - backend-net
+
+  # 🌐 API Gateway
   api-gateway:
     build: ./api-gateway
     ports:
@@ -9,14 +17,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - cliente-service
-      - contenedor-service
-      - transporte-service
-      - ruta-service
-      - deposito-service
-      - solicitud-service
+      - eureka-server
+    networks:
+      - backend-net
 
-  # Cliente Service
+  # 👤 Cliente Service
   cliente-service:
     build: ./cliente-service
     ports:
@@ -24,8 +29,13 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://cliente-db:5432/cliente_db
+      - SPRING_DATASOURCE_USERNAME=cliente_user
+      - SPRING_DATASOURCE_PASSWORD=cliente_pass
     depends_on:
       - cliente-db
+      - eureka-server
+    networks:
+      - backend-net
 
   cliente-db:
     image: postgres:15-alpine
@@ -35,8 +45,10 @@ services:
       - POSTGRES_PASSWORD=cliente_pass
     volumes:
       - cliente-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
 
-  # Contenedor Service
+  # 📦 Contenedor Service
   contenedor-service:
     build: ./contenedor-service
     ports:
@@ -44,8 +56,13 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://contenedor-db:5432/contenedor_db
+      - SPRING_DATASOURCE_USERNAME=contenedor_user
+      - SPRING_DATASOURCE_PASSWORD=contenedor_pass
     depends_on:
       - contenedor-db
+      - eureka-server
+    networks:
+      - backend-net
 
   contenedor-db:
     image: postgres:15-alpine
@@ -55,57 +72,51 @@ services:
       - POSTGRES_PASSWORD=contenedor_pass
     volumes:
       - contenedor-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
 
-  # Transporte Service
-  transporte-service:
-    build: ./transporte-service
+  # 🚛 Camion Service
+  camion-service:
+    build: ./camion-service
     ports:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://transporte-db:5432/transporte_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://camion-db:5432/camion_db
+      - SPRING_DATASOURCE_USERNAME=camion_user
+      - SPRING_DATASOURCE_PASSWORD=camion_pass
     depends_on:
-      - transporte-db
+      - camion-db
+      - eureka-server
+    networks:
+      - backend-net
 
-  transporte-db:
+  camion-db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=transporte_db
-      - POSTGRES_USER=transporte_user
-      - POSTGRES_PASSWORD=transporte_pass
+      - POSTGRES_DB=camion_db
+      - POSTGRES_USER=camion_user
+      - POSTGRES_PASSWORD=camion_pass
     volumes:
-      - transporte-data:/var/lib/postgresql/data
+      - camion-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
 
-  # Ruta Service
-  ruta-service:
-    build: ./ruta-service
+  # 🏢 Deposito Service
+  deposito-service:
+    build: ./deposito-service
     ports:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://ruta-db:5432/ruta_db
-    depends_on:
-      - ruta-db
-
-  ruta-db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=ruta_db
-      - POSTGRES_USER=ruta_user
-      - POSTGRES_PASSWORD=ruta_pass
-    volumes:
-      - ruta-data:/var/lib/postgresql/data
-
-  # Deposito Service
-  deposito-service:
-    build: ./deposito-service
-    ports:
-      - "8085:8085"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://deposito-db:5432/deposito_db
+      - SPRING_DATASOURCE_USERNAME=deposito_user
+      - SPRING_DATASOURCE_PASSWORD=deposito_pass
     depends_on:
       - deposito-db
+      - eureka-server
+    networks:
+      - backend-net
 
   deposito-db:
     image: postgres:15-alpine
@@ -115,17 +126,24 @@ services:
       - POSTGRES_PASSWORD=deposito_pass
     volumes:
       - deposito-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
 
-  # Solicitud Service
+  # 🧾 Solicitud Service
   solicitud-service:
     build: ./solicitud-service
     ports:
-      - "8086:8086"
+      - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://solicitud-db:5432/solicitud_db
+      - SPRING_DATASOURCE_USERNAME=solicitud_user
+      - SPRING_DATASOURCE_PASSWORD=solicitud_pass
     depends_on:
       - solicitud-db
+      - eureka-server
+    networks:
+      - backend-net
 
   solicitud-db:
     image: postgres:15-alpine
@@ -135,11 +153,74 @@ services:
       - POSTGRES_PASSWORD=solicitud_pass
     volumes:
       - solicitud-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
 
+  # 🗺️ Ruta Service
+  ruta-service:
+    build: ./ruta-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ruta-db:5432/ruta_db
+      - SPRING_DATASOURCE_USERNAME=ruta_user
+      - SPRING_DATASOURCE_PASSWORD=ruta_pass
+    depends_on:
+      - ruta-db
+      - eureka-server
+    networks:
+      - backend-net
+
+  ruta-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=ruta_db
+      - POSTGRES_USER=ruta_user
+      - POSTGRES_PASSWORD=ruta_pass
+    volumes:
+      - ruta-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  # 💰 Tarifa Service
+  tarifa-service:
+    build: ./tarifa-service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://tarifa-db:5432/tarifa_db
+      - SPRING_DATASOURCE_USERNAME=tarifa_user
+      - SPRING_DATASOURCE_PASSWORD=tarifa_pass
+    depends_on:
+      - tarifa-db
+      - eureka-server
+    networks:
+      - backend-net
+
+  tarifa-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=tarifa_db
+      - POSTGRES_USER=tarifa_user
+      - POSTGRES_PASSWORD=tarifa_pass
+    volumes:
+      - tarifa-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+# 💾 Volúmenes persistentes
 volumes:
   cliente-data:
   contenedor-data:
-  transporte-data:
-  ruta-data:
+  camion-data:
   deposito-data:
   solicitud-data:
+  ruta-data:
+  tarifa-data:
+
+# 🌐 Red compartida entre servicios
+networks:
+  backend-net:
+    driver: bridge
