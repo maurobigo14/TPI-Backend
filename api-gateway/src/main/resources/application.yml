@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: api-gateway
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: cliente
+          uri: http://cliente-service:8081
+          predicates:
+            - Path=/api/clientes/**
+          filters:
+            - RewritePath=/api/clientes/(?<remaining>.*), /api/clientes/${remaining}
+        - id: contenedor
+          uri: http://contenedor-service:8082
+          predicates:
+            - Path=/api/contenedores/**
+        - id: transporte
+          uri: http://transporte-service:8083
+          predicates:
+            - Path=/api/camiones/**
+            - Path=/api/tarifas/**
+        - id: ruta
+          uri: http://ruta-service:8084
+          predicates:
+            - Path=/api/rutas/**
+        - id: deposito
+          uri: http://deposito-service:8085
+          predicates:
+            - Path=/api/depositos/**
+        - id: solicitud
+          uri: http://solicitud-service:8086
+          predicates:
+            - Path=/api/solicitudes/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka/

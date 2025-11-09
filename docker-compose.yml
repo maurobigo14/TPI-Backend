@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - cliente-service
+      - contenedor-service
+      - transporte-service
+      - ruta-service
+      - deposito-service
+      - solicitud-service
+
+  # Cliente Service
+  cliente-service:
+    build: ./cliente-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://cliente-db:5432/cliente_db
+    depends_on:
+      - cliente-db
+
+  cliente-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=cliente_db
+      - POSTGRES_USER=cliente_user
+      - POSTGRES_PASSWORD=cliente_pass
+    volumes:
+      - cliente-data:/var/lib/postgresql/data
+
+  # Contenedor Service
+  contenedor-service:
+    build: ./contenedor-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://contenedor-db:5432/contenedor_db
+    depends_on:
+      - contenedor-db
+
+  contenedor-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=contenedor_db
+      - POSTGRES_USER=contenedor_user
+      - POSTGRES_PASSWORD=contenedor_pass
+    volumes:
+      - contenedor-data:/var/lib/postgresql/data
+
+  # Transporte Service
+  transporte-service:
+    build: ./transporte-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://transporte-db:5432/transporte_db
+    depends_on:
+      - transporte-db
+
+  transporte-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=transporte_db
+      - POSTGRES_USER=transporte_user
+      - POSTGRES_PASSWORD=transporte_pass
+    volumes:
+      - transporte-data:/var/lib/postgresql/data
+
+  # Ruta Service
+  ruta-service:
+    build: ./ruta-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ruta-db:5432/ruta_db
+    depends_on:
+      - ruta-db
+
+  ruta-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=ruta_db
+      - POSTGRES_USER=ruta_user
+      - POSTGRES_PASSWORD=ruta_pass
+    volumes:
+      - ruta-data:/var/lib/postgresql/data
+
+  # Deposito Service
+  deposito-service:
+    build: ./deposito-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://deposito-db:5432/deposito_db
+    depends_on:
+      - deposito-db
+
+  deposito-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=deposito_db
+      - POSTGRES_USER=deposito_user
+      - POSTGRES_PASSWORD=deposito_pass
+    volumes:
+      - deposito-data:/var/lib/postgresql/data
+
+  # Solicitud Service
+  solicitud-service:
+    build: ./solicitud-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://solicitud-db:5432/solicitud_db
+    depends_on:
+      - solicitud-db
+
+  solicitud-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=solicitud_db
+      - POSTGRES_USER=solicitud_user
+      - POSTGRES_PASSWORD=solicitud_pass
+    volumes:
+      - solicitud-data:/var/lib/postgresql/data
+
+volumes:
+  cliente-data:
+  contenedor-data:
+  transporte-data:
+  ruta-data:
+  deposito-data:
+  solicitud-data:
