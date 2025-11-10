@@ -1,7 +1,7 @@
 package org.example.deposito.controller;
 
 import org.example.deposito.model.Deposito;
-import org.example.deposito.repository.DepositoRepository;
+import org.example.deposito.service.DepositoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,46 +11,40 @@ import java.util.List;
 @RequestMapping("/api/depositos")
 public class DepositoController {
 
-    private final DepositoRepository depositoRepository;
+    private final DepositoService service;
 
-    public DepositoController(DepositoRepository depositoRepository) {
-        this.depositoRepository = depositoRepository;
+    public DepositoController(DepositoService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public List<Deposito> list() {
-        return depositoRepository.findAll();
+    public List<Deposito> listar() {
+        return service.listarTodos();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Deposito> get(@PathVariable Integer id) {
-        return depositoRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/activos")
+    public List<Deposito> listarActivos() {
+        return service.listarActivos();
+    }
+
+    @GetMapping("/ciudad/{nombre}")
+    public List<Deposito> porCiudad(@PathVariable String nombre) {
+        return service.buscarPorCiudad(nombre);
     }
 
     @PostMapping
-    public Deposito create(@RequestBody Deposito deposito) {
-        return depositoRepository.save(deposito);
+    public ResponseEntity<Deposito> crear(@RequestBody Deposito d) {
+        return ResponseEntity.ok(service.crear(d));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Deposito> update(@PathVariable Integer id, @RequestBody Deposito deposito) {
-        return depositoRepository.findById(id)
-                .map(existing -> {
-                    deposito.setId(id);
-                    return ResponseEntity.ok(depositoRepository.save(deposito));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Deposito> actualizar(@PathVariable Long id, @RequestBody Deposito d) {
+        return ResponseEntity.ok(service.actualizar(id, d));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        return depositoRepository.findById(id)
-                .map(existing -> {
-                    depositoRepository.deleteById(id);
-                    return ResponseEntity.ok().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        service.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }
