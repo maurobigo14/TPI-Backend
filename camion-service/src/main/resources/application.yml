@@ -1,5 +1,5 @@
 server:
-  port: 8088
+  port: 8083
 
 spring:
   application:
@@ -21,3 +21,17 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+---
+# docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://camion-db:5432/camion_db
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka/

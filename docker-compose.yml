@@ -106,7 +106,7 @@ services:
   deposito-service:
     build: ./deposito-service
     ports:
-      - "8084:8085"
+      - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://deposito-db:5432/deposito_db

@@ -5,30 +5,30 @@ spring:
     gateway:
       routes:
         - id: cliente
-          uri: http://cliente-service:8081
+          uri: lb://cliente-service
           predicates:
             - Path=/api/clientes/**
           filters:
             - RewritePath=/api/clientes/(?<remaining>.*), /api/clientes/${remaining}
         - id: contenedor
-          uri: http://contenedor-service:8082
+          uri: lb://contenedor-service
           predicates:
             - Path=/api/contenedores/**
         - id: transporte
-          uri: http://transporte-service:8083
+          uri: lb://camion-service
           predicates:
             - Path=/api/camiones/**
             - Path=/api/tarifas/**
         - id: ruta
-          uri: http://ruta-service:8084
+          uri: lb://ruta-service
           predicates:
             - Path=/api/rutas/**
         - id: deposito
-          uri: http://deposito-service:8085
+          uri: lb://deposito-service
           predicates:
             - Path=/api/depositos/**
         - id: solicitud
-          uri: http://solicitud-service:8086
+          uri: lb://solicitud-service
           predicates:
             - Path=/api/solicitudes/**
 
