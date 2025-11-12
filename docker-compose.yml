@@ -9,6 +9,19 @@ services:
     networks:
       - backend-net
 
+  # 🔐 Keycloak (Autenticación y Autorización)
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    command: ["start-dev"]
+    ports:
+      - "8088:8080"
+    networks:
+      - backend-net
+
   # 🌐 API Gateway
   api-gateway:
     build: ./api-gateway
@@ -133,7 +146,7 @@ services:
   solicitud-service:
     build: ./solicitud-service
     ports:
-      - "8085:8085"
+      - "8086:8086"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://solicitud-db:5432/solicitud_db
@@ -160,7 +173,7 @@ services:
   ruta-service:
     build: ./ruta-service
     ports:
-      - "8086:8086"
+      - "8087:8087"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ruta-db:5432/ruta_db
@@ -187,7 +200,7 @@ services:
   tarifa-service:
     build: ./tarifa-service
     ports:
-      - "8087:8087"
+      - "8089:8089"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://tarifa-db:5432/tarifa_db
