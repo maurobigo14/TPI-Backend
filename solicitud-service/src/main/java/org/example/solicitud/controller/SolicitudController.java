@@ -1,7 +1,9 @@
 package org.example.solicitud.controller;
 
-import org.example.solicitud.model.Solicitud;
-import org.example.solicitud.repository.SolicitudRepository;
+import org.example.solicitud.dto.SolicitudCrearRequest;
+import org.example.solicitud.dto.SolicitudResponse;
+import org.example.solicitud.service.SolicitudService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,24 +13,27 @@ import java.util.List;
 @RequestMapping("/api/solicitudes")
 public class SolicitudController {
 
-    private final SolicitudRepository solicitudRepository;
+    private final SolicitudService solicitudService;
 
-    public SolicitudController(SolicitudRepository solicitudRepository) {
-        this.solicitudRepository = solicitudRepository;
+    public SolicitudController(SolicitudService solicitudService) {
+        this.solicitudService = solicitudService;
     }
 
     @GetMapping
-    public List<Solicitud> list() {
-        return solicitudRepository.findAll();
+    public List<SolicitudResponse> list() {
+        return solicitudService.listarSolicitudes();
     }
 
     @GetMapping("/cliente/{dni}")
-    public List<Solicitud> byCliente(@PathVariable String dni) {
-        return solicitudRepository.findByClienteDni(dni);
+    public List<SolicitudResponse> byCliente(@PathVariable String dni) {
+        return solicitudService.buscarPorCliente(dni);
     }
 
     @PostMapping
-    public Solicitud create(@RequestBody Solicitud solicitud) {
-        return solicitudRepository.save(solicitud);
+    public ResponseEntity<SolicitudResponse> create(@RequestBody SolicitudCrearRequest request) {
+
+        SolicitudResponse response = solicitudService.crearSolicitud(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
