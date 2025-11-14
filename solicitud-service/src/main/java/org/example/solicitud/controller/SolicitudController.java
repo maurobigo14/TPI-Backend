@@ -2,6 +2,7 @@ package org.example.solicitud.controller;
 
 import org.example.solicitud.dto.SolicitudCrearRequest;
 import org.example.solicitud.dto.SolicitudResponse;
+import org.example.solicitud.dto.SolicitudDetalleResponse;
 import org.example.solicitud.service.SolicitudService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,21 @@ public class SolicitudController {
         return solicitudService.listarSolicitudes();
     }
 
+    @GetMapping("/{numero}")
+    public ResponseEntity<SolicitudDetalleResponse> obtenerPorNumero(@PathVariable Long numero) {
+        return solicitudService.obtenerPorNumero(numero)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/cliente/{dni}")
     public List<SolicitudResponse> byCliente(@PathVariable String dni) {
         return solicitudService.buscarPorCliente(dni);
+    }
+
+    @GetMapping("/estado/{estado}")
+    public List<SolicitudResponse> porEstado(@PathVariable String estado) {
+        return solicitudService.buscarPorEstado(estado);
     }
 
     @PostMapping
@@ -35,5 +48,11 @@ public class SolicitudController {
         SolicitudResponse response = solicitudService.crearSolicitud(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/rutas/tentativas")
+    public ResponseEntity<List<org.example.solicitud.dto.RutaResponse>> rutasTentativas(@RequestBody SolicitudCrearRequest request) {
+        List<org.example.solicitud.dto.RutaResponse> rutas = solicitudService.generarRutasTentativas(request);
+        return ResponseEntity.ok(rutas);
     }
 }

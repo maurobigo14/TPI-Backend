@@ -1,41 +1,27 @@
-package org.example.solicitud.model;
+package org.example.solicitud.dto;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "solicitudes")
-public class Solicitud {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class SolicitudDetalleResponse {
     private Long numero;
-
     private Long contenedorId;
     private String clienteDni;
-
     private String origenDireccion;
     private Double origenLat;
     private Double origenLng;
-
     private String destinoDireccion;
     private Double destinoLat;
     private Double destinoLng;
-
-    @Enumerated(EnumType.STRING)
-    private EstadoSolicitud estado;
-
+    private String estado;
     private Double costoEstimado;
     private Integer tiempoEstimado;
-
     private Double costoFinal;
     private Integer tiempoReal;
-
-    public Long getNumero() {
-        return numero;
-    }
 }

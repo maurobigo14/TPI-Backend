@@ -1,4 +1,4 @@
-package main.java.org.example.camion.service;
+package org.example.camion.service;
 
 import org.example.camion.model.Transportista;
 import org.example.camion.repository.TransportistaRepository;

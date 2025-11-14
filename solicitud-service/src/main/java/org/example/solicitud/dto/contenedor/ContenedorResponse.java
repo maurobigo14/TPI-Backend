@@ -6,6 +6,7 @@ import lombok.Data;
 public class ContenedorResponse {
 
     private Integer id;
+    private String numeroIdentificacion;
     private Integer peso;
     private Integer volumen;
     private String estado;

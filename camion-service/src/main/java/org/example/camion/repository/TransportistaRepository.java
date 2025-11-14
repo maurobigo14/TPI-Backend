@@ -1,4 +1,4 @@
-package main.java.org.example.camion.repository;
+package org.example.camion.repository;
 
 import org.example.camion.model.Transportista;
 import org.springframework.data.jpa.repository.JpaRepository;

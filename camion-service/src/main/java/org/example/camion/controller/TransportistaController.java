@@ -1,4 +1,4 @@
-package main.java.org.example.camion.controller;
+package org.example.camion.controller;
 
 import org.example.camion.model.Transportista;
 import org.example.camion.service.TransportistaService;
