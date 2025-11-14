@@ -25,6 +25,7 @@ import org.example.solicitud.dto.AsignarCamionRequest;
 import org.example.solicitud.dto.AsignarCamionResponse;
 import org.example.solicitud.repository.SolicitudRepository;
 import org.example.solicitud.service.SolicitudService;
+import org.example.solicitud.service.GoogleMapsService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,19 +44,22 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final RutaRepository rutaRepository;
     private final TramoRepository tramoRepository;
     private final AsignacionCamionRepository asignacionCamionRepository;
+    private final GoogleMapsService googleMapsService;
 
     public SolicitudServiceImpl(SolicitudRepository solicitudRepository,
                                 ClienteClient clienteClient,
                                 ContenedorClient contenedorClient,
                                 RutaRepository rutaRepository,
                                 TramoRepository tramoRepository,
-                                AsignacionCamionRepository asignacionCamionRepository) {
+                                AsignacionCamionRepository asignacionCamionRepository,
+                                GoogleMapsService googleMapsService) {
         this.solicitudRepository = solicitudRepository;
         this.clienteClient = clienteClient;
         this.contenedorClient = contenedorClient;
         this.rutaRepository = rutaRepository;
         this.tramoRepository = tramoRepository;
         this.asignacionCamionRepository = asignacionCamionRepository;
+        this.googleMapsService = googleMapsService;
     }
 
     @Override
@@ -277,7 +281,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     @Override
     public java.util.List<org.example.solicitud.dto.RutaResponse> generarRutasTentativas(org.example.solicitud.dto.SolicitudCrearRequest request) {
-        // Algoritmo simple de rutas tentativas:
+        // Algoritmo con Google Maps:
         // Genera 2 opciones: directo (origen -> destino) y vía depósito (origen -> punto intermedio -> destino)
 
         double origenLat = request.getOrigenLat();
@@ -293,54 +297,92 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         List<org.example.solicitud.dto.RutaResponse> rutas = new ArrayList<>();
 
-        // Helper lambda para calcular tramo
-        java.util.function.BiFunction<double[], double[], org.example.solicitud.dto.TramoResponse> calcTramo = (from, to) -> {
-            double dist = haversine(from[0], from[1], to[0], to[1]);
-            int tiempoMin = (int) Math.round(dist); // approx: 1 km ~= 1 min (60 km/h)
-            double costo = calcularCosto(dist, pesoKg, volumenM3);
-            return org.example.solicitud.dto.TramoResponse.builder()
-                    .origenDireccion(from[2] == 1.0 ? origenDir : "")
-                    .origenLat(from[0])
-                    .origenLng(from[1])
-                    .destinoDireccion(to[2] == 1.0 ? destinoDir : "")
-                    .destinoLat(to[0])
-                    .destinoLng(to[1])
-                    .distanciaKm(dist)
-                    .tiempoMin(tiempoMin)
-                    .costo(costo)
+        // Ruta directa: origen -> destino
+        GoogleMapsService.DistanceInfo directInfo = googleMapsService.getDistance(
+                origenLat, origenLng, destinoLat, destinoLng);
+
+        if (directInfo.isSuccess()) {
+            double distDirect = directInfo.getDistanceKm();
+            int timeDirect = directInfo.getDurationMinutes();
+            double costoDirect = calcularCosto(distDirect, pesoKg, volumenM3);
+
+            org.example.solicitud.dto.TramoResponse tramoDirecto = org.example.solicitud.dto.TramoResponse.builder()
+                    .origenDireccion(origenDir)
+                    .origenLat(origenLat)
+                    .origenLng(origenLng)
+                    .destinoDireccion(destinoDir)
+                    .destinoLat(destinoLat)
+                    .destinoLng(destinoLng)
+                    .distanciaKm(distDirect)
+                    .tiempoMin(timeDirect)
+                    .costo(costoDirect)
                     .build();
-        };
 
-        // Directo
-        double[] o = new double[]{origenLat, origenLng, 1.0};
-        double[] d = new double[]{destinoLat, destinoLng, 1.0};
-        org.example.solicitud.dto.TramoResponse tramoDirecto = calcTramo.apply(o, d);
-        org.example.solicitud.dto.RutaResponse rutaDirecta = org.example.solicitud.dto.RutaResponse.builder()
-                .descripcion("Directa: origen -> destino")
-                .tramos(List.of(tramoDirecto))
-                .distanciaTotalKm(tramoDirecto.getDistanciaKm())
-                .tiempoTotalMin(tramoDirecto.getTiempoMin())
-                .costoTotal(tramoDirecto.getCosto())
-                .build();
-        rutas.add(rutaDirecta);
+            org.example.solicitud.dto.RutaResponse rutaDirecta = org.example.solicitud.dto.RutaResponse.builder()
+                    .descripcion("Directa (Google Maps): origen -> destino")
+                    .tramos(List.of(tramoDirecto))
+                    .distanciaTotalKm(distDirect)
+                    .tiempoTotalMin(timeDirect)
+                    .costoTotal(costoDirect)
+                    .build();
+            rutas.add(rutaDirecta);
+        }
 
-        // Vía depósito (punto intermedio aproximado)
+        // Ruta vía depósito (punto intermedio)
         double midLat = (origenLat + destinoLat) / 2.0;
         double midLng = (origenLng + destinoLng) / 2.0;
-        double[] m = new double[]{midLat, midLng, 0.0};
-        org.example.solicitud.dto.TramoResponse t1 = calcTramo.apply(o, m);
-        org.example.solicitud.dto.TramoResponse t2 = calcTramo.apply(m, d);
-        double distanciaTotal = t1.getDistanciaKm() + t2.getDistanciaKm();
-        int tiempoTotal = t1.getTiempoMin() + t2.getTiempoMin();
-        double costoTotal = t1.getCosto() + t2.getCosto();
-        org.example.solicitud.dto.RutaResponse rutaViaDeposito = org.example.solicitud.dto.RutaResponse.builder()
-                .descripcion("Vía depósito: origen -> depósito -> destino")
-                .tramos(List.of(t1, t2))
-                .distanciaTotalKm(distanciaTotal)
-                .tiempoTotalMin(tiempoTotal)
-                .costoTotal(costoTotal)
-                .build();
-        rutas.add(rutaViaDeposito);
+
+        GoogleMapsService.DistanceInfo info1 = googleMapsService.getDistance(
+                origenLat, origenLng, midLat, midLng);
+        GoogleMapsService.DistanceInfo info2 = googleMapsService.getDistance(
+                midLat, midLng, destinoLat, destinoLng);
+
+        if (info1.isSuccess() && info2.isSuccess()) {
+            double dist1 = info1.getDistanceKm();
+            int time1 = info1.getDurationMinutes();
+            double costo1 = calcularCosto(dist1, pesoKg, volumenM3);
+
+            double dist2 = info2.getDistanceKm();
+            int time2 = info2.getDurationMinutes();
+            double costo2 = calcularCosto(dist2, pesoKg, volumenM3);
+
+            org.example.solicitud.dto.TramoResponse t1 = org.example.solicitud.dto.TramoResponse.builder()
+                    .origenDireccion(origenDir)
+                    .origenLat(origenLat)
+                    .origenLng(origenLng)
+                    .destinoDireccion("Depósito Intermedio")
+                    .destinoLat(midLat)
+                    .destinoLng(midLng)
+                    .distanciaKm(dist1)
+                    .tiempoMin(time1)
+                    .costo(costo1)
+                    .build();
+
+            org.example.solicitud.dto.TramoResponse t2 = org.example.solicitud.dto.TramoResponse.builder()
+                    .origenDireccion("Depósito Intermedio")
+                    .origenLat(midLat)
+                    .origenLng(midLng)
+                    .destinoDireccion(destinoDir)
+                    .destinoLat(destinoLat)
+                    .destinoLng(destinoLng)
+                    .distanciaKm(dist2)
+                    .tiempoMin(time2)
+                    .costo(costo2)
+                    .build();
+
+            double distanciaTotal = dist1 + dist2;
+            int tiempoTotal = time1 + time2;
+            double costoTotal = costo1 + costo2;
+
+            org.example.solicitud.dto.RutaResponse rutaViaDeposito = org.example.solicitud.dto.RutaResponse.builder()
+                    .descripcion("Vía depósito (Google Maps): origen -> depósito -> destino")
+                    .tramos(List.of(t1, t2))
+                    .distanciaTotalKm(distanciaTotal)
+                    .tiempoTotalMin(tiempoTotal)
+                    .costoTotal(costoTotal)
+                    .build();
+            rutas.add(rutaViaDeposito);
+        }
 
         return rutas;
     }

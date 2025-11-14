@@ -1,6 +1,7 @@
 package org.example.contenedor.service;
 
 import org.example.contenedor.model.Contenedor;
+import org.example.contenedor.model.EstadoContenedor;
 import org.example.contenedor.repository.ContenedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,10 @@ public class ContenedorService {
 
     public List<Contenedor> findByEstado(String estado) {
         return contenedorRepository.findByEstado(estado);
+    }
+
+    public List<Contenedor> findPendientesDeEntrega() {
+        return contenedorRepository.findByEstado("EN_TRANSITO");
     }
 
     public Contenedor save(Contenedor contenedor) {

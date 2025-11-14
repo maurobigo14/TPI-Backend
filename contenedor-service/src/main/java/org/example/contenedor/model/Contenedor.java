@@ -36,4 +36,7 @@ public class Contenedor {
 
     @Column(name = "cliente_dni")
     private String clienteDni;
+
+    @Column(name = "solicitud_id")
+    private Long solicitudId;
 }

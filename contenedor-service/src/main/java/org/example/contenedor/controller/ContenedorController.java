@@ -1,12 +1,14 @@
 package org.example.contenedor.controller;
 
 import org.example.contenedor.model.Contenedor;
+import org.example.contenedor.dto.ContenedorPendienteResponse;
 import org.example.contenedor.service.ContenedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/contenedores")
@@ -64,5 +66,21 @@ public class ContenedorController {
                     return ResponseEntity.ok().<Void>build();
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/pendientes/entrega")
+    public List<ContenedorPendienteResponse> getPendientesDeEntrega() {
+        return contenedorService.findPendientesDeEntrega()
+                .stream()
+                .map(c -> ContenedorPendienteResponse.builder()
+                        .id(c.getId())
+                        .numeroIdentificacion(c.getNumeroIdentificacion())
+                        .peso(c.getPeso())
+                        .volumen(c.getVolumen())
+                        .estado(c.getEstado().getValor())
+                        .clienteDni(c.getClienteDni())
+                        .solicitudId(c.getSolicitudId())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
