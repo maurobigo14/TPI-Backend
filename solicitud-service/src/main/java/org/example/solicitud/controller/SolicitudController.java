@@ -3,6 +3,10 @@ package org.example.solicitud.controller;
 import org.example.solicitud.dto.SolicitudCrearRequest;
 import org.example.solicitud.dto.SolicitudResponse;
 import org.example.solicitud.dto.SolicitudDetalleResponse;
+import org.example.solicitud.dto.AsignarRutaRequest;
+import org.example.solicitud.dto.AsignarRutaResponse;
+import org.example.solicitud.dto.AsignarCamionRequest;
+import org.example.solicitud.dto.AsignarCamionResponse;
 import org.example.solicitud.service.SolicitudService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +58,17 @@ public class SolicitudController {
     public ResponseEntity<List<org.example.solicitud.dto.RutaResponse>> rutasTentativas(@RequestBody SolicitudCrearRequest request) {
         List<org.example.solicitud.dto.RutaResponse> rutas = solicitudService.generarRutasTentativas(request);
         return ResponseEntity.ok(rutas);
+    }
+
+    @PostMapping("/rutas/asignar")
+    public ResponseEntity<AsignarRutaResponse> asignarRuta(@RequestBody AsignarRutaRequest request) {
+        AsignarRutaResponse response = solicitudService.asignarRuta(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/tramos/asignar-camion")
+    public ResponseEntity<AsignarCamionResponse> asignarCamionATramo(@RequestBody AsignarCamionRequest request) {
+        AsignarCamionResponse response = solicitudService.asignarCamionATramo(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

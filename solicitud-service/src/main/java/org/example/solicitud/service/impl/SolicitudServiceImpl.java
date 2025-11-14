@@ -9,8 +9,20 @@ import org.example.solicitud.dto.cliente.ClienteRequest;
 import org.example.solicitud.dto.cliente.ClienteResponse;
 import org.example.solicitud.dto.contenedor.ContenedorRequest;
 import org.example.solicitud.dto.contenedor.ContenedorResponse;
-import org.example.solicitud.model.EstadoSolicitud;
+import org.example.solicitud.model.Ruta;
+import org.example.solicitud.model.Tramo;
+import org.example.solicitud.model.EstadoTramo;
 import org.example.solicitud.model.Solicitud;
+import org.example.solicitud.model.EstadoSolicitud;
+import org.example.solicitud.model.AsignacionCamion;
+import org.example.solicitud.model.EstadoAsignacion;
+import org.example.solicitud.repository.RutaRepository;
+import org.example.solicitud.repository.TramoRepository;
+import org.example.solicitud.repository.AsignacionCamionRepository;
+import org.example.solicitud.dto.AsignarRutaRequest;
+import org.example.solicitud.dto.AsignarRutaResponse;
+import org.example.solicitud.dto.AsignarCamionRequest;
+import org.example.solicitud.dto.AsignarCamionResponse;
 import org.example.solicitud.repository.SolicitudRepository;
 import org.example.solicitud.service.SolicitudService;
 import org.springframework.stereotype.Service;
@@ -28,13 +40,22 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final SolicitudRepository solicitudRepository;
     private final ClienteClient clienteClient;
     private final ContenedorClient contenedorClient;
+    private final RutaRepository rutaRepository;
+    private final TramoRepository tramoRepository;
+    private final AsignacionCamionRepository asignacionCamionRepository;
 
     public SolicitudServiceImpl(SolicitudRepository solicitudRepository,
                                 ClienteClient clienteClient,
-                                ContenedorClient contenedorClient) {
+                                ContenedorClient contenedorClient,
+                                RutaRepository rutaRepository,
+                                TramoRepository tramoRepository,
+                                AsignacionCamionRepository asignacionCamionRepository) {
         this.solicitudRepository = solicitudRepository;
         this.clienteClient = clienteClient;
         this.contenedorClient = contenedorClient;
+        this.rutaRepository = rutaRepository;
+        this.tramoRepository = tramoRepository;
+        this.asignacionCamionRepository = asignacionCamionRepository;
     }
 
     @Override
@@ -170,6 +191,91 @@ public class SolicitudServiceImpl implements SolicitudService {
     }
 
     @Override
+    public org.example.solicitud.dto.AsignarRutaResponse asignarRuta(org.example.solicitud.dto.AsignarRutaRequest request) {
+        // Verificar que la solicitud existe
+        Solicitud solicitud = solicitudRepository.findById(request.getSolicitudId())
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        // Verificar que no exista ruta asignada previamente
+        if (rutaRepository.findBySolicitudId(request.getSolicitudId()).isPresent()) {
+            throw new RuntimeException("La solicitud ya tiene una ruta asignada");
+        }
+
+        // Calcular totales
+        double distanciaTotal = request.getTramos().stream()
+                .mapToDouble(org.example.solicitud.dto.AsignarRutaRequest.TramoRequest::getDistanciaKm)
+                .sum();
+        int tiempoTotal = request.getTramos().stream()
+                .mapToInt(org.example.solicitud.dto.AsignarRutaRequest.TramoRequest::getTiempoMin)
+                .sum();
+        double costoTotal = request.getTramos().stream()
+                .mapToDouble(org.example.solicitud.dto.AsignarRutaRequest.TramoRequest::getCosto)
+                .sum();
+
+        // Crear ruta
+        Ruta ruta = Ruta.builder()
+                .solicitudId(request.getSolicitudId())
+                .descripcion(request.getDescripcion())
+                .distanciaTotalKm(distanciaTotal)
+                .tiempoTotalMin(tiempoTotal)
+                .costoTotal(costoTotal)
+                .build();
+        ruta = rutaRepository.save(ruta);
+
+        // Crear tramos
+        java.util.List<Tramo> tramosGuardados = new java.util.ArrayList<>();
+        for (int i = 0; i < request.getTramos().size(); i++) {
+            org.example.solicitud.dto.AsignarRutaRequest.TramoRequest tramoReq = request.getTramos().get(i);
+            Tramo tramo = Tramo.builder()
+                    .ruta(ruta)
+                    .numeroSecuencia(i + 1)
+                    .origenDireccion(tramoReq.getOrigenDireccion())
+                    .origenLat(tramoReq.getOrigenLat())
+                    .origenLng(tramoReq.getOrigenLng())
+                    .destinoDireccion(tramoReq.getDestinoDireccion())
+                    .destinoLat(tramoReq.getDestinoLat())
+                    .destinoLng(tramoReq.getDestinoLng())
+                    .distanciaKm(tramoReq.getDistanciaKm())
+                    .tiempoMin(tramoReq.getTiempoMin())
+                    .costo(tramoReq.getCosto())
+                    .estado(EstadoTramo.PENDIENTE)
+                    .build();
+            tramosGuardados.add(tramoRepository.save(tramo));
+        }
+
+        // Actualizar solicitud con costo estimado y tiempo estimado
+        solicitud.setCostoEstimado(costoTotal);
+        solicitud.setTiempoEstimado(tiempoTotal);
+        solicitud.setEstado(EstadoSolicitud.PROGRAMADA);
+        solicitudRepository.save(solicitud);
+
+        // Armar respuesta
+        java.util.List<org.example.solicitud.dto.TramoResponse> tramosResponse = tramosGuardados.stream()
+                .map(t -> org.example.solicitud.dto.TramoResponse.builder()
+                        .origenDireccion(t.getOrigenDireccion())
+                        .origenLat(t.getOrigenLat())
+                        .origenLng(t.getOrigenLng())
+                        .destinoDireccion(t.getDestinoDireccion())
+                        .destinoLat(t.getDestinoLat())
+                        .destinoLng(t.getDestinoLng())
+                        .distanciaKm(t.getDistanciaKm())
+                        .tiempoMin(t.getTiempoMin())
+                        .costo(t.getCosto())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+
+        return org.example.solicitud.dto.AsignarRutaResponse.builder()
+                .rutaId(ruta.getId())
+                .solicitudId(request.getSolicitudId())
+                .descripcion(request.getDescripcion())
+                .tramos(tramosResponse)
+                .distanciaTotalKm(distanciaTotal)
+                .tiempoTotalMin(tiempoTotal)
+                .costoTotal(costoTotal)
+                .build();
+    }
+
+    @Override
     public java.util.List<org.example.solicitud.dto.RutaResponse> generarRutasTentativas(org.example.solicitud.dto.SolicitudCrearRequest request) {
         // Algoritmo simple de rutas tentativas:
         // Genera 2 opciones: directo (origen -> destino) y vía depósito (origen -> punto intermedio -> destino)
@@ -257,6 +363,42 @@ public class SolicitudServiceImpl implements SolicitudService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = R * c;
         return Math.round(distance * 100.0) / 100.0;
+    }
+
+    @Override
+    public org.example.solicitud.dto.AsignarCamionResponse asignarCamionATramo(org.example.solicitud.dto.AsignarCamionRequest request) {
+        // Validar que el tramo existe
+        Tramo tramo = tramoRepository.findById(request.getTramoId())
+                .orElseThrow(() -> new RuntimeException("Tramo no encontrado"));
+
+        // Validar que no tenga asignación previa
+        if (asignacionCamionRepository.findByTramoId(request.getTramoId()).isPresent()) {
+            throw new RuntimeException("El tramo ya tiene un camión asignado");
+        }
+
+        // Crear asignación
+        AsignacionCamion asignacion = AsignacionCamion.builder()
+                .tramo(tramo)
+                .camionDominio(request.getCamionDominio())
+                .transportistaDni(request.getTransportistaDni())
+                .estado(EstadoAsignacion.ASIGNADO)
+                .fechaAsignacion(java.time.LocalDateTime.now())
+                .build();
+
+        asignacion = asignacionCamionRepository.save(asignacion);
+
+        // Actualizar estado del tramo a EN_TRANSITO
+        tramo.setEstado(EstadoTramo.EN_TRANSITO);
+        tramoRepository.save(tramo);
+
+        return org.example.solicitud.dto.AsignarCamionResponse.builder()
+                .asignacionId(asignacion.getId())
+                .tramoId(asignacion.getTramo().getId())
+                .camionDominio(asignacion.getCamionDominio())
+                .transportistaDni(asignacion.getTransportistaDni())
+                .estado(asignacion.getEstado().getValor())
+                .fechaAsignacion(asignacion.getFechaAsignacion())
+                .build();
     }
 }
 
