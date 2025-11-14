@@ -28,4 +28,8 @@ public interface SolicitudService {
     AsignarRutaResponse asignarRuta(AsignarRutaRequest request);
 
     AsignarCamionResponse asignarCamionATramo(AsignarCamionRequest request);
+
+    org.example.solicitud.dto.TramoEventoResponse iniciarTramo(org.example.solicitud.dto.IniciarTramoRequest request);
+
+    org.example.solicitud.dto.TramoEventoResponse finalizarTramo(org.example.solicitud.dto.FinalizarTramoRequest request);
 }

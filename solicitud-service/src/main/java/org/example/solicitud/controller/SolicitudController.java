@@ -71,4 +71,22 @@ public class SolicitudController {
         AsignarCamionResponse response = solicitudService.asignarCamionATramo(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PostMapping("/tramos/{id}/iniciar")
+    public ResponseEntity<org.example.solicitud.dto.TramoEventoResponse> iniciarTramo(
+            @PathVariable Long id,
+            @RequestBody org.example.solicitud.dto.IniciarTramoRequest request) {
+        request.setAsignacionCamionId(id);
+        org.example.solicitud.dto.TramoEventoResponse response = solicitudService.iniciarTramo(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/tramos/{id}/finalizar")
+    public ResponseEntity<org.example.solicitud.dto.TramoEventoResponse> finalizarTramo(
+            @PathVariable Long id,
+            @RequestBody org.example.solicitud.dto.FinalizarTramoRequest request) {
+        request.setAsignacionCamionId(id);
+        org.example.solicitud.dto.TramoEventoResponse response = solicitudService.finalizarTramo(request);
+        return ResponseEntity.ok(response);
+    }
 }

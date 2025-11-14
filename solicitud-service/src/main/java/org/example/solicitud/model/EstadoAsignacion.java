@@ -4,6 +4,7 @@ public enum EstadoAsignacion {
     ASIGNADO("asignado"),
     EN_TRANSITO("en tránsito"),
     ENTREGADO("entregado"),
+    COMPLETADA("completada"),
     CANCELADO("cancelado");
 
     private final String valor;

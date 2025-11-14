@@ -62,6 +62,79 @@ public class SolicitudServiceImpl implements SolicitudService {
         this.googleMapsService = googleMapsService;
     }
 
+        @Override
+        public org.example.solicitud.dto.TramoEventoResponse iniciarTramo(org.example.solicitud.dto.IniciarTramoRequest request) {
+                Optional<AsignacionCamion> optAsignacion = asignacionCamionRepository.findById(request.getAsignacionCamionId());
+                if (optAsignacion.isEmpty()) {
+                        throw new RuntimeException("Asignación no encontrada: " + request.getAsignacionCamionId());
+                }
+
+                AsignacionCamion asignacion = optAsignacion.get();
+        
+                // Validar que no esté ya iniciado
+                if (asignacion.getFechaInicio() != null) {
+                        throw new RuntimeException("El tramo ya ha sido iniciado");
+                }
+
+                asignacion.setFechaInicio(java.time.LocalDateTime.now());
+                asignacion.setEstado(EstadoAsignacion.EN_TRANSITO);
+                asignacionCamionRepository.save(asignacion);
+
+                // Actualizar estado del tramo
+                Tramo tramo = asignacion.getTramo();
+                tramo.setEstado(EstadoTramo.EN_TRANSITO);
+                tramoRepository.save(tramo);
+
+                return org.example.solicitud.dto.TramoEventoResponse.builder()
+                                .asignacionCamionId(asignacion.getId())
+                                .tramoId(asignacion.getTramo().getId())
+                                .evento("INICIADO")
+                                .timestamp(asignacion.getFechaInicio())
+                                .mensaje("Tramo iniciado exitosamente")
+                                .build();
+        }
+
+        @Override
+        public org.example.solicitud.dto.TramoEventoResponse finalizarTramo(org.example.solicitud.dto.FinalizarTramoRequest request) {
+                Optional<AsignacionCamion> optAsignacion = asignacionCamionRepository.findById(request.getAsignacionCamionId());
+                if (optAsignacion.isEmpty()) {
+                        throw new RuntimeException("Asignación no encontrada: " + request.getAsignacionCamionId());
+                }
+
+                AsignacionCamion asignacion = optAsignacion.get();
+        
+                // Validar que esté iniciado
+                if (asignacion.getFechaInicio() == null) {
+                        throw new RuntimeException("El tramo no ha sido iniciado aún");
+                }
+
+                // Validar que no esté ya finalizado
+                if (asignacion.getFechaFin() != null) {
+                        throw new RuntimeException("El tramo ya ha sido finalizado");
+                }
+
+                asignacion.setFechaFin(java.time.LocalDateTime.now());
+                asignacion.setEstado(EstadoAsignacion.COMPLETADA);
+                asignacionCamionRepository.save(asignacion);
+
+                // Actualizar estado del tramo
+                Tramo tramo = asignacion.getTramo();
+                tramo.setEstado(EstadoTramo.COMPLETADO);
+                tramoRepository.save(tramo);
+
+                // Calcular tiempo real de ejecución
+                long minutosDuracion = java.time.temporal.ChronoUnit.MINUTES.between(
+                                asignacion.getFechaInicio(), asignacion.getFechaFin());
+
+                return org.example.solicitud.dto.TramoEventoResponse.builder()
+                                .asignacionCamionId(asignacion.getId())
+                                .tramoId(asignacion.getTramo().getId())
+                                .evento("FINALIZADO")
+                                .timestamp(asignacion.getFechaFin())
+                                .mensaje("Tramo finalizado. Duración: " + minutosDuracion + " minutos")
+                                .build();
+        }
+
     @Override
     public SolicitudResponse crearSolicitud(SolicitudCrearRequest request) {
 
