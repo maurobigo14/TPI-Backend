@@ -19,6 +19,9 @@ public class Contenedor {
     @Column(name = "id")
     private Integer id;
 
+    @Column(name = "numero_identificacion", unique = true, nullable = false)
+    private String numeroIdentificacion;
+
     @Column(name = "peso")
     @Min(value = 0, message = "El peso no puede ser negativo")
     private Integer peso;
@@ -27,9 +30,10 @@ public class Contenedor {
     @Min(value = 0, message = "El volumen no puede ser negativo")
     private Integer volumen;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado")
-    private String estado;
+    private EstadoContenedor estado;
 
-    @Column(name = "cliente")
+    @Column(name = "cliente_dni")
     private String clienteDni;
 }
