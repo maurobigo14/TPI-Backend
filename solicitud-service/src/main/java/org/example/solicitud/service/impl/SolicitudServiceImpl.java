@@ -194,6 +194,8 @@ public class SolicitudServiceImpl implements SolicitudService {
                                                 .sum();
                                 sol.setCostoFinal(costoFinalRuta);
                                 sol.setTiempoReal((int) tiempoSum);
+                                // Marcar solicitud como entregada al completar todos los tramos
+                                sol.setEstado(org.example.solicitud.model.EstadoSolicitud.ENTREGADA);
                                 solicitudRepository.save(sol);
                         }
                 }

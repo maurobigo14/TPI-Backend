@@ -1,0 +1,5 @@
+﻿{
+    "error":  "No es posible conectar con el servidor remoto",
+    "full":  "Invoke-RestMethod : No es posible conectar con el servidor remoto\r\nEn línea: 1 Carácter: 571\r\n+ ... y { $resp = Invoke-RestMethod -Method Post -Uri \r\n\"$solUrl/api/solicitu ...\r\n+                 \r\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (:) [Invoke-RestMethod], Web \r\n   Exception\r\n    + FullyQualifiedErrorId : System.Net.WebException,Microsoft.PowerShe \r\n   ll.Commands.InvokeRestMethodCommand\r\n \r\n",
+    "success":  false
+}
