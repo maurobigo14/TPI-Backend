@@ -42,4 +42,10 @@ public class TarifaController {
         tarifaService.deleteTarifa(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/calc")
+    public ResponseEntity<org.example.tarifa.dto.TarifaCalcResponse> calcularCosto(@RequestBody org.example.tarifa.dto.TarifaCalcRequest req) {
+        org.example.tarifa.dto.TarifaCalcResponse resp = tarifaService.calcularCosto(req);
+        return ResponseEntity.ok(resp);
+    }
 }

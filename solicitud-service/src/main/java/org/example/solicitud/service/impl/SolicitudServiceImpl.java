@@ -26,6 +26,9 @@ import org.example.solicitud.dto.AsignarCamionResponse;
 import org.example.solicitud.repository.SolicitudRepository;
 import org.example.solicitud.service.SolicitudService;
 import org.example.solicitud.service.GoogleMapsService;
+import org.example.solicitud.client.CamionClient;
+import org.example.solicitud.dto.camion.CamionResponse;
+import org.example.solicitud.exception.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,14 +48,18 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final TramoRepository tramoRepository;
     private final AsignacionCamionRepository asignacionCamionRepository;
     private final GoogleMapsService googleMapsService;
+                private final org.example.solicitud.client.TarifaClient tarifaClient;
+                private final CamionClient camionClient;
 
-    public SolicitudServiceImpl(SolicitudRepository solicitudRepository,
-                                ClienteClient clienteClient,
-                                ContenedorClient contenedorClient,
-                                RutaRepository rutaRepository,
-                                TramoRepository tramoRepository,
-                                AsignacionCamionRepository asignacionCamionRepository,
-                                GoogleMapsService googleMapsService) {
+        public SolicitudServiceImpl(SolicitudRepository solicitudRepository,
+                                                                ClienteClient clienteClient,
+                                                                ContenedorClient contenedorClient,
+                                                                RutaRepository rutaRepository,
+                                                                TramoRepository tramoRepository,
+                                                                AsignacionCamionRepository asignacionCamionRepository,
+                                                                GoogleMapsService googleMapsService,
+                                                                org.example.solicitud.client.TarifaClient tarifaClient,
+                                                                CamionClient camionClient) {
         this.solicitudRepository = solicitudRepository;
         this.clienteClient = clienteClient;
         this.contenedorClient = contenedorClient;
@@ -60,6 +67,8 @@ public class SolicitudServiceImpl implements SolicitudService {
         this.tramoRepository = tramoRepository;
         this.asignacionCamionRepository = asignacionCamionRepository;
         this.googleMapsService = googleMapsService;
+                                this.tarifaClient = tarifaClient;
+                                this.camionClient = camionClient;
     }
 
         @Override
@@ -125,6 +134,69 @@ public class SolicitudServiceImpl implements SolicitudService {
                 // Calcular tiempo real de ejecución
                 long minutosDuracion = java.time.temporal.ChronoUnit.MINUTES.between(
                                 asignacion.getFechaInicio(), asignacion.getFechaFin());
+
+                // Si todos los tramos de la ruta están finalizados, calcular costo total y persistir
+                Ruta ruta = tramo.getRuta();
+                List<Tramo> tramosRuta = tramoRepository.findByRutaId(ruta.getId());
+                boolean todosCompletos = tramosRuta.stream().allMatch(t -> t.getEstado() == EstadoTramo.COMPLETADO);
+                if (todosCompletos) {
+                        double distanciaTotal = tramosRuta.stream().mapToDouble(t -> t.getDistanciaKm() != null ? t.getDistanciaKm() : 0.0).sum();
+
+                        // Obtener contenedor para peso/volumen
+                        Solicitud sol = solicitudRepository.findById(ruta.getSolicitudId()).orElse(null);
+                        double pesoKg = 0.0;
+                        double volumenM3 = 0.0;
+                        if (sol != null && sol.getContenedorId() != null) {
+                                try {
+                                        org.example.solicitud.dto.contenedor.ContenedorResponse c = contenedorClient.obtenerContenedor(sol.getContenedorId().intValue());
+                                        if (c != null) {
+                                                pesoKg = c.getPeso();
+                                                volumenM3 = c.getVolumen();
+                                        }
+                                } catch (Exception ignored) {
+                                }
+                        }
+
+                        // Llamar a tarifa-service
+                        org.example.solicitud.dto.tarifa.TarifaCalcRequest tarifaReq = org.example.solicitud.dto.tarifa.TarifaCalcRequest.builder()
+                                        .distanciaKm(distanciaTotal)
+                                        .pesoKg(pesoKg)
+                                        .volumenM3(volumenM3)
+                                        .diasEstadia(0)
+                                        .build();
+                        double costoFinalRuta = 0.0;
+                        try {
+                                org.example.solicitud.dto.tarifa.TarifaCalcResponse tarifaResp = tarifaClient.calcular(tarifaReq);
+                                if (tarifaResp != null) costoFinalRuta = tarifaResp.getCostoTotal();
+                        } catch (Exception ignored) {
+                        }
+
+                        // Persistir costo en la ruta y solicitud
+                        ruta.setCostoTotal(costoFinalRuta);
+                        rutaRepository.save(ruta);
+                        if (sol != null) {
+                                // Calcular tiempo real total: sumar duraciones de asignaciones
+                                long tiempoRealTotal = 0;
+                                for (Tramo t : tramosRuta) {
+                                        asignacionCamionRepository.findByTramoId(t.getId()).ifPresent(a -> {
+                                                if (a.getFechaInicio() != null && a.getFechaFin() != null) {
+                                                        long mins = java.time.temporal.ChronoUnit.MINUTES.between(a.getFechaInicio(), a.getFechaFin());
+                                                        // accumulate using array hack
+                                                        // we'll handle accumulation outside
+                                                }
+                                        });
+                                }
+                                // Sum durations properly
+                                long tiempoSum = tramosRuta.stream()
+                                                .mapToLong(t -> asignacionCamionRepository.findByTramoId(t.getId())
+                                                                .map(a -> (a.getFechaInicio() != null && a.getFechaFin() != null) ? java.time.temporal.ChronoUnit.MINUTES.between(a.getFechaInicio(), a.getFechaFin()) : 0L)
+                                                                .orElse(0L))
+                                                .sum();
+                                sol.setCostoFinal(costoFinalRuta);
+                                sol.setTiempoReal((int) tiempoSum);
+                                solicitudRepository.save(sol);
+                        }
+                }
 
                 return org.example.solicitud.dto.TramoEventoResponse.builder()
                                 .asignacionCamionId(asignacion.getId())
@@ -377,7 +449,23 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (directInfo.isSuccess()) {
             double distDirect = directInfo.getDistanceKm();
             int timeDirect = directInfo.getDurationMinutes();
-            double costoDirect = calcularCosto(distDirect, pesoKg, volumenM3);
+
+            // Call tarifa service for total route cost
+            org.example.solicitud.dto.tarifa.TarifaCalcRequest tarifaReq = org.example.solicitud.dto.tarifa.TarifaCalcRequest.builder()
+                    .distanciaKm(distDirect)
+                    .pesoKg(pesoKg)
+                    .volumenM3(volumenM3)
+                    .diasEstadia(0)
+                    .build();
+
+            org.example.solicitud.dto.tarifa.TarifaCalcResponse tarifaResp = null;
+            try {
+                tarifaResp = tarifaClient.calcular(tarifaReq);
+            } catch (Exception e) {
+                // fallback to simple calcularCosto
+            }
+
+            double costoTotalRuta = tarifaResp != null ? tarifaResp.getCostoTotal() : calcularCosto(distDirect, pesoKg, volumenM3);
 
             org.example.solicitud.dto.TramoResponse tramoDirecto = org.example.solicitud.dto.TramoResponse.builder()
                     .origenDireccion(origenDir)
@@ -388,7 +476,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                     .destinoLng(destinoLng)
                     .distanciaKm(distDirect)
                     .tiempoMin(timeDirect)
-                    .costo(costoDirect)
+                    .costo(costoTotalRuta) // only tramo in route
                     .build();
 
             org.example.solicitud.dto.RutaResponse rutaDirecta = org.example.solicitud.dto.RutaResponse.builder()
@@ -396,7 +484,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                     .tramos(List.of(tramoDirecto))
                     .distanciaTotalKm(distDirect)
                     .tiempoTotalMin(timeDirect)
-                    .costoTotal(costoDirect)
+                    .costoTotal(costoTotalRuta)
                     .build();
             rutas.add(rutaDirecta);
         }
@@ -413,11 +501,33 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (info1.isSuccess() && info2.isSuccess()) {
             double dist1 = info1.getDistanceKm();
             int time1 = info1.getDurationMinutes();
-            double costo1 = calcularCosto(dist1, pesoKg, volumenM3);
 
             double dist2 = info2.getDistanceKm();
             int time2 = info2.getDurationMinutes();
-            double costo2 = calcularCosto(dist2, pesoKg, volumenM3);
+
+            double distanciaTotal = dist1 + dist2;
+            int tiempoTotal = time1 + time2;
+
+            // Call tarifa service for total route cost
+            org.example.solicitud.dto.tarifa.TarifaCalcRequest tarifaReq = org.example.solicitud.dto.tarifa.TarifaCalcRequest.builder()
+                    .distanciaKm(distanciaTotal)
+                    .pesoKg(pesoKg)
+                    .volumenM3(volumenM3)
+                    .diasEstadia(0)
+                    .build();
+
+            org.example.solicitud.dto.tarifa.TarifaCalcResponse tarifaResp = null;
+            try {
+                tarifaResp = tarifaClient.calcular(tarifaReq);
+            } catch (Exception e) {
+                // fallback to local calculation per tramo
+            }
+
+            double costoTotal = tarifaResp != null ? tarifaResp.getCostoTotal() : (calcularCosto(dist1, pesoKg, volumenM3) + calcularCosto(dist2, pesoKg, volumenM3));
+
+            // Distribute cost proportionally to distance
+            double costo1 = (distanciaTotal > 0) ? costoTotal * (dist1 / distanciaTotal) : costoTotal / 2.0;
+            double costo2 = costoTotal - costo1;
 
             org.example.solicitud.dto.TramoResponse t1 = org.example.solicitud.dto.TramoResponse.builder()
                     .origenDireccion(origenDir)
@@ -442,10 +552,6 @@ public class SolicitudServiceImpl implements SolicitudService {
                     .tiempoMin(time2)
                     .costo(costo2)
                     .build();
-
-            double distanciaTotal = dist1 + dist2;
-            int tiempoTotal = time1 + time2;
-            double costoTotal = costo1 + costo2;
 
             org.example.solicitud.dto.RutaResponse rutaViaDeposito = org.example.solicitud.dto.RutaResponse.builder()
                     .descripcion("Vía depósito (Google Maps): origen -> depósito -> destino")
@@ -490,6 +596,45 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (asignacionCamionRepository.findByTramoId(request.getTramoId()).isPresent()) {
             throw new RuntimeException("El tramo ya tiene un camión asignado");
         }
+
+                // Validar capacidad del camión contra el contenedor de la solicitud
+                try {
+                        Ruta ruta = tramo.getRuta();
+                        if (ruta != null && ruta.getSolicitudId() != null) {
+                                java.util.Optional<Solicitud> solOpt = solicitudRepository.findById(ruta.getSolicitudId());
+                                if (solOpt.isPresent()) {
+                                        Solicitud sol = solOpt.get();
+                                        if (sol.getContenedorId() != null) {
+                                                org.example.solicitud.dto.contenedor.ContenedorResponse cont = contenedorClient.obtenerContenedor(sol.getContenedorId().intValue());
+                                                if (cont == null) {
+                                                        throw new BadRequestException("No se pudo obtener el contenedor para validación");
+                                                }
+
+                                                // obtener camion
+                                                CamionResponse camion = camionClient.obtenerPorDominio(String.valueOf(request.getCamionDominio()));
+                                                if (camion == null) {
+                                                        throw new BadRequestException("Camión no encontrado: " + request.getCamionDominio());
+                                                }
+
+                                                Integer pesoCont = cont.getPeso();
+                                                Integer volCont = cont.getVolumen();
+                                                Double capacidadPeso = camion.getCapacidadPeso() != null ? camion.getCapacidadPeso() : 0.0;
+                                                Double capacidadVol = camion.getCapacidadVolumen() != null ? camion.getCapacidadVolumen() : 0.0;
+
+                                                if (pesoCont != null && pesoCont > capacidadPeso) {
+                                                        throw new BadRequestException("Capacidad de peso insuficiente para el camión (peso contenedor: " + pesoCont + ", capacidad: " + capacidadPeso + ")");
+                                                }
+                                                if (volCont != null && volCont > capacidadVol) {
+                                                        throw new BadRequestException("Capacidad de volumen insuficiente para el camión (volumen contenedor: " + volCont + ", capacidad: " + capacidadVol + ")");
+                                                }
+                                        }
+                                }
+                        }
+                } catch (RuntimeException rex) {
+                        throw rex;
+                } catch (Exception e) {
+                        throw new BadRequestException("Error validando capacidad del camión: " + e.getMessage(), e);
+                }
 
         // Crear asignación
         AsignacionCamion asignacion = AsignacionCamion.builder()

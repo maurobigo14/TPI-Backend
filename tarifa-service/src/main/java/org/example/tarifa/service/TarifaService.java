@@ -29,4 +29,34 @@ public class TarifaService {
     public void deleteTarifa(Long id) {
         tarifaRepository.deleteById(id);
     }
+
+    public org.example.tarifa.dto.TarifaCalcResponse calcularCosto(org.example.tarifa.dto.TarifaCalcRequest req) {
+        // Use the first tarifa available as base; otherwise fallback to defaults
+        Tarifa t = tarifaRepository.findAll().stream().findFirst().orElse(null);
+
+        double costoBaseKm = (t != null && t.getCostoBaseKm() != null) ? t.getCostoBaseKm() : 10.0; // ARS per km default
+        double valorLitro = (t != null && t.getValorLitroCombustible() != null) ? t.getValorLitroCombustible() : 200.0;
+        double consumoKm = (t != null && t.getCosumoPromedioKm() != null) ? t.getCosumoPromedioKm() : 0.3; // litros/km
+        double costoEstadiaDiaria = (t != null && t.getCostoEstadiaDiaria() != null) ? t.getCostoEstadiaDiaria() : 1000.0;
+        double cargoGestion = (t != null && t.getCargoGestion() != null) ? t.getCargoGestion() : 500.0;
+
+        double distancia = req.getDistanciaKm();
+        int dias = Math.max(0, req.getDiasEstadia());
+
+        double costoKm = distancia * costoBaseKm;
+        double costoCombustible = distancia * consumoKm * valorLitro;
+        double costoEstadia = dias * costoEstadiaDiaria;
+
+        double total = costoKm + costoCombustible + costoEstadia + cargoGestion;
+
+        return org.example.tarifa.dto.TarifaCalcResponse.builder()
+                .distanciaKm(distancia)
+                .costoBaseKm(costoKm)
+                .costoCombustible(costoCombustible)
+                .cargoGestion(cargoGestion)
+                .costoEstadia(costoEstadia)
+                .costoTotal(total)
+                .moneda("ARS")
+                .build();
+    }
 }
