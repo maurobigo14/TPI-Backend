@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AsignarCamionRequest {
     private Long tramoId;
-    private Integer camionDominio;
+    private String camionDominio;
     private String transportistaDni;
 }

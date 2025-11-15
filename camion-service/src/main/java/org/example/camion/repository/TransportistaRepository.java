@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface TransportistaRepository extends JpaRepository<Transportista, Long> {
-    List<Transportista> findByCamionDominio(int dominio);
+    List<Transportista> findByCamionDominio(String dominio);
 }

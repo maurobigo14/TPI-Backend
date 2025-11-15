@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface CamionClient {
 
     @GetMapping("/api/camiones/{dominio}")
-    CamionResponse obtenerPorDominio(@PathVariable("dominio") Integer dominio);
+    CamionResponse obtenerPorDominio(@PathVariable("dominio") String dominio);
 }

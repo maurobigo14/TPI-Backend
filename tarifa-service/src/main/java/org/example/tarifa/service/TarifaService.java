@@ -26,6 +26,14 @@ public class TarifaService {
         return tarifaRepository.save(tarifa);
     }
 
+    public Optional<Tarifa> updateTarifa(Long id, Tarifa tarifa) {
+        if (!tarifaRepository.existsById(id)) {
+            return Optional.empty();
+        }
+        tarifa.setId(id);
+        return Optional.of(tarifaRepository.save(tarifa));
+    }
+
     public void deleteTarifa(Long id) {
         tarifaRepository.deleteById(id);
     }

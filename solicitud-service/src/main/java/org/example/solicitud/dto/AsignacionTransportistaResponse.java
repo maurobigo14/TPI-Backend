@@ -28,7 +28,7 @@ public class AsignacionTransportistaResponse {
     private Double distanciaKm;
     private Integer tiempoMin;
     private Double costo;
-    private Integer camionDominio;
+    private String camionDominio;
     private String transportistaDni;
     private LocalDateTime fechaAsignacion;
     private LocalDateTime fechaInicio;

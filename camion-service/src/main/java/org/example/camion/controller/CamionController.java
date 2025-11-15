@@ -28,7 +28,7 @@ public class CamionController {
     }
 
     @GetMapping("/{dominio}")
-    public ResponseEntity<Camion> getCamionByDominio(@PathVariable Integer dominio) {
+    public ResponseEntity<Camion> getCamionByDominio(@PathVariable String dominio) {
         return camionService.getCamionByDominio(dominio)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -41,18 +41,24 @@ public class CamionController {
 
     @PostMapping
     public ResponseEntity<Camion> createCamion(@RequestBody Camion camion) {
-        return ResponseEntity.ok(camionService.saveCamion(camion));
+        return ResponseEntity.status(201).body(camionService.saveCamion(camion));
     }
 
     @PutMapping("/{dominio}")
-    public ResponseEntity<Camion> updateCamion(@PathVariable Integer dominio, @RequestBody Camion camion) {
-        camion.setDominio(dominio);
-        return ResponseEntity.ok(camionService.saveCamion(camion));
+    public ResponseEntity<Camion> updateCamion(@PathVariable String dominio, @RequestBody Camion camion) {
+        Camion updated = camionService.updateCamion(dominio, camion);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{dominio}")
-    public ResponseEntity<Void> deleteCamion(@PathVariable Integer dominio) {
-        camionService.deleteCamion(dominio);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteCamion(@PathVariable String dominio) {
+        boolean deleted = camionService.deleteCamion(dominio);
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
     }
 }

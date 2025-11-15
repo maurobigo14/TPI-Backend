@@ -18,7 +18,7 @@ public class CamionService {
         return camionRepository.findAll();
     }
 
-    public Optional<Camion> getCamionByDominio(Integer dominio) {
+    public Optional<Camion> getCamionByDominio(String dominio) {
         return camionRepository.findByDominio(dominio);
     }
 
@@ -30,7 +30,19 @@ public class CamionService {
         return camionRepository.save(camion);
     }
 
-    public void deleteCamion(Integer dominio) {
+    public Camion updateCamion(String dominio, Camion camion) {
+        if (!camionRepository.existsById(dominio)) {
+            return null;
+        }
+        camion.setDominio(dominio);
+        return camionRepository.save(camion);
+    }
+
+    public boolean deleteCamion(String dominio) {
+        if (!camionRepository.existsById(dominio)) {
+            return false;
+        }
         camionRepository.deleteById(dominio);
+        return true;
     }
 }

@@ -16,9 +16,8 @@ import java.util.Objects;
 @Table(name="camiones")
 public class Camion {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "dominio", unique = true, nullable = false)
-    private int dominio;
+    @Column(name = "dominio", unique = true, nullable = false, length = 20)
+    private String dominio;
 
     @Column(name = "nombre_transportista", length = 15, nullable = false)
     private String nombreTransportista;
@@ -42,12 +41,12 @@ public class Camion {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-    Camion camion = (Camion) o;
-    return dominio == camion.dominio;
+        Camion camion = (Camion) o;
+        return dominio != null && dominio.equals(camion.dominio);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(dominio);
+        return Objects.hashCode(dominio);
     }
 }

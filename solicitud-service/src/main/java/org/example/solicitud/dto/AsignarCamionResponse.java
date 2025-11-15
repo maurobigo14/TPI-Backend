@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class AsignarCamionResponse {
     private Long asignacionId;
     private Long tramoId;
-    private Integer camionDominio;
+    private String camionDominio;
     private String transportistaDni;
     private String estado;
     private LocalDateTime fechaAsignacion;

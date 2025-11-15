@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CamionRepository extends JpaRepository<Camion, Integer> {
-    Optional<Camion> findByDominio(Integer dominio);
+public interface CamionRepository extends JpaRepository<Camion, String> {
+    Optional<Camion> findByDominio(String dominio);
     List<Camion> findByDisponibilidad(Boolean disponibilidad);
 }

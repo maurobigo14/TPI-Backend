@@ -36,7 +36,7 @@ public class TransportistaController {
     }
 
     @GetMapping("/camion/{dominio}")
-    public ResponseEntity<List<Transportista>> obtenerPorCamion(@PathVariable int dominio) {
+    public ResponseEntity<List<Transportista>> obtenerPorCamion(@PathVariable String dominio) {
         List<Transportista> transportistas = transportistaService.obtenerPorCamion(dominio);
         return ResponseEntity.ok(transportistas);
     }

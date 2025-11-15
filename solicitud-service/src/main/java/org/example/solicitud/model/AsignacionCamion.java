@@ -19,8 +19,8 @@ public class AsignacionCamion {
     @JoinColumn(name = "tramo_id", nullable = false)
     private Tramo tramo;
 
-    @Column(name = "camion_dominio", nullable = false)
-    private Integer camionDominio;
+    @Column(name = "camion_dominio", nullable = false, length = 20)
+    private String camionDominio;
 
     @Column(name = "transportista_dni")
     private String transportistaDni;

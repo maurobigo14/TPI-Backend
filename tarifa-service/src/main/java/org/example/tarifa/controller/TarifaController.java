@@ -29,12 +29,14 @@ public class TarifaController {
 
     @PostMapping
     public ResponseEntity<Tarifa> createTarifa(@RequestBody Tarifa tarifa) {
-        return ResponseEntity.ok(tarifaService.saveTarifa(tarifa));
+        return ResponseEntity.status(201).body(tarifaService.saveTarifa(tarifa));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Tarifa> updateTarifa(@PathVariable Long id, @RequestBody Tarifa tarifa) {
-        return ResponseEntity.ok(tarifaService.saveTarifa(tarifa));
+        return tarifaService.updateTarifa(id, tarifa)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

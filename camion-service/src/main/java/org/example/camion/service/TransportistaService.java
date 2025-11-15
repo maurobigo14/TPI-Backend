@@ -25,7 +25,7 @@ public class TransportistaService {
         return transportistaRepository.findAll();
     }
 
-    public List<Transportista> obtenerPorCamion(int dominio) {
+    public List<Transportista> obtenerPorCamion(String dominio) {
         return transportistaRepository.findByCamionDominio(dominio);
     }
 
