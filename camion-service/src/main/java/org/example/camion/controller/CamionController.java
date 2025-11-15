@@ -1,12 +1,19 @@
 package org.example.camion.controller;
 
+import java.util.List;
+
 import org.example.camion.model.Camion;
 import org.example.camion.service.CamionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/camiones")
@@ -21,7 +28,7 @@ public class CamionController {
     }
 
     @GetMapping("/{dominio}")
-    public ResponseEntity<Camion> getCamionByDominio(@PathVariable String dominio) {
+    public ResponseEntity<Camion> getCamionByDominio(@PathVariable Integer dominio) {
         return camionService.getCamionByDominio(dominio)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -37,14 +44,15 @@ public class CamionController {
         return ResponseEntity.ok(camionService.saveCamion(camion));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Camion> updateCamion(@PathVariable Long id, @RequestBody Camion camion) {
+    @PutMapping("/{dominio}")
+    public ResponseEntity<Camion> updateCamion(@PathVariable Integer dominio, @RequestBody Camion camion) {
+        camion.setDominio(dominio);
         return ResponseEntity.ok(camionService.saveCamion(camion));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCamion(@PathVariable Long id) {
-        camionService.deleteCamion(id);
+    @DeleteMapping("/{dominio}")
+    public ResponseEntity<Void> deleteCamion(@PathVariable Integer dominio) {
+        camionService.deleteCamion(dominio);
         return ResponseEntity.ok().build();
     }
 }

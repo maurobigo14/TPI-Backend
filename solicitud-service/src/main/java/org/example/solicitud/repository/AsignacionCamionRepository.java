@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface AsignacionCamionRepository extends JpaRepository<AsignacionCamion, Long> {
     Optional<AsignacionCamion> findByTramoId(Long tramoId);
     List<AsignacionCamion> findByCamionDominio(Integer dominio);
+    List<AsignacionCamion> findByTransportistaDni(String transportistaDni);
 }

@@ -23,6 +23,12 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
 
+camion-service:
+  url: ${CAMION_SERVICE_URL:http://localhost:8083}
+
+contenedor-service:
+  url: ${CONTENEDOR_SERVICE_URL:http://localhost:8082}
+
 ---
 # docker profile
 spring:
@@ -36,3 +42,12 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    hostname: solicitud-service
+    preferIpAddress: false
+
+camion-service:
+  url: http://camion-service:8083
+
+contenedor-service:
+  url: http://contenedor-service:8082

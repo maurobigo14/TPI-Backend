@@ -1,12 +1,12 @@
 package org.example.camion.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.example.camion.model.Camion;
 import org.example.camion.repository.CamionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CamionService {
@@ -18,7 +18,7 @@ public class CamionService {
         return camionRepository.findAll();
     }
 
-    public Optional<Camion> getCamionByDominio(String dominio) {
+    public Optional<Camion> getCamionByDominio(Integer dominio) {
         return camionRepository.findByDominio(dominio);
     }
 
@@ -30,7 +30,7 @@ public class CamionService {
         return camionRepository.save(camion);
     }
 
-    public void deleteCamion(Long id) {
-        camionRepository.deleteById(id);
+    public void deleteCamion(Integer dominio) {
+        camionRepository.deleteById(dominio);
     }
 }

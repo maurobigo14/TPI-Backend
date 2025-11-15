@@ -1,0 +1,30 @@
+﻿{
+  "solicitudId": 1,
+  "descripcion": "Ruta confirmada",
+  "tramos": [
+    {
+      "numeroSecuencia": 1,
+      "origenDireccion": "Buenos Aires, Argentina",
+      "origenLat": -34.6037,
+      "origenLng": -58.3816,
+      "destinoDireccion": "DepÃ³sito Intermedio",
+      "destinoLat": -33.77395,
+      "destinoLng": -59.51605,
+      "distanciaKm": 139.28,
+      "tiempoMin": 139,
+      "costo": 182.6
+    },
+    {
+      "numeroSecuencia": 2,
+      "origenDireccion": "DepÃ³sito Intermedio",
+      "origenLat": -33.77395,
+      "origenLng": -59.51605,
+      "destinoDireccion": "Rosario, Argentina",
+      "destinoLat": -32.9442,
+      "destinoLng": -60.6505,
+      "distanciaKm": 140.05,
+      "tiempoMin": 140,
+      "costo": 183.6
+    }
+  ]
+}

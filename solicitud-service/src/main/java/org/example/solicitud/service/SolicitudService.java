@@ -7,6 +7,7 @@ import org.example.solicitud.dto.AsignarRutaRequest;
 import org.example.solicitud.dto.AsignarRutaResponse;
 import org.example.solicitud.dto.AsignarCamionRequest;
 import org.example.solicitud.dto.AsignarCamionResponse;
+import org.example.solicitud.dto.AsignacionTransportistaResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,4 +33,6 @@ public interface SolicitudService {
     org.example.solicitud.dto.TramoEventoResponse iniciarTramo(org.example.solicitud.dto.IniciarTramoRequest request);
 
     org.example.solicitud.dto.TramoEventoResponse finalizarTramo(org.example.solicitud.dto.FinalizarTramoRequest request);
+
+    List<AsignacionTransportistaResponse> obtenerTramosAsignados(String transportistaDni);
 }

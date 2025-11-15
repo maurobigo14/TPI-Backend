@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
         name = "contenedor-service",
+        url = "${contenedor-service.url:http://contenedor-service:8082}",
         path = "/api/contenedores"
 )
 public interface ContenedorClient {

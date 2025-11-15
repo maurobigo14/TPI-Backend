@@ -7,6 +7,7 @@ import org.example.solicitud.dto.AsignarRutaRequest;
 import org.example.solicitud.dto.AsignarRutaResponse;
 import org.example.solicitud.dto.AsignarCamionRequest;
 import org.example.solicitud.dto.AsignarCamionResponse;
+import org.example.solicitud.dto.AsignacionTransportistaResponse;
 import org.example.solicitud.service.SolicitudService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -88,5 +89,10 @@ public class SolicitudController {
         request.setAsignacionCamionId(id);
         org.example.solicitud.dto.TramoEventoResponse response = solicitudService.finalizarTramo(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/transportistas/{dni}/tramos")
+    public List<AsignacionTransportistaResponse> tramosAsignadosTransportista(@PathVariable String dni) {
+        return solicitudService.obtenerTramosAsignados(dni);
     }
 }

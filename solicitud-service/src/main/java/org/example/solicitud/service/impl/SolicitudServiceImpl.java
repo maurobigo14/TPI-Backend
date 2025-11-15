@@ -23,6 +23,7 @@ import org.example.solicitud.dto.AsignarRutaRequest;
 import org.example.solicitud.dto.AsignarRutaResponse;
 import org.example.solicitud.dto.AsignarCamionRequest;
 import org.example.solicitud.dto.AsignarCamionResponse;
+import org.example.solicitud.dto.AsignacionTransportistaResponse;
 import org.example.solicitud.repository.SolicitudRepository;
 import org.example.solicitud.service.SolicitudService;
 import org.example.solicitud.service.GoogleMapsService;
@@ -613,7 +614,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                                                 }
 
                                                 // obtener camion
-                                                CamionResponse camion = camionClient.obtenerPorDominio(String.valueOf(request.getCamionDominio()));
+                                                CamionResponse camion = camionClient.obtenerPorDominio(request.getCamionDominio());
                                                 if (camion == null) {
                                                         throw new BadRequestException("Camión no encontrado: " + request.getCamionDominio());
                                                 }
@@ -661,6 +662,44 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .estado(asignacion.getEstado().getValor())
                 .fechaAsignacion(asignacion.getFechaAsignacion())
                 .build();
+    }
+
+    @Override
+    public List<AsignacionTransportistaResponse> obtenerTramosAsignados(String transportistaDni) {
+        List<AsignacionCamion> asignaciones = asignacionCamionRepository.findByTransportistaDni(transportistaDni);
+
+        return asignaciones.stream()
+                .map(asignacion -> {
+                    Tramo tramo = asignacion.getTramo();
+                    Ruta ruta = tramo != null ? tramo.getRuta() : null;
+                    Long rutaId = ruta != null ? ruta.getId() : null;
+                    Long solicitudId = ruta != null ? ruta.getSolicitudId() : null;
+
+                    return AsignacionTransportistaResponse.builder()
+                            .asignacionId(asignacion.getId())
+                            .tramoId(tramo != null ? tramo.getId() : null)
+                            .rutaId(rutaId)
+                            .solicitudId(solicitudId)
+                            .numeroSecuencia(tramo != null ? tramo.getNumeroSecuencia() : null)
+                            .estadoAsignacion(asignacion.getEstado().getValor())
+                            .estadoTramo(tramo != null && tramo.getEstado() != null ? tramo.getEstado().getValor() : null)
+                            .origenDireccion(tramo != null ? tramo.getOrigenDireccion() : null)
+                            .origenLat(tramo != null ? tramo.getOrigenLat() : null)
+                            .origenLng(tramo != null ? tramo.getOrigenLng() : null)
+                            .destinoDireccion(tramo != null ? tramo.getDestinoDireccion() : null)
+                            .destinoLat(tramo != null ? tramo.getDestinoLat() : null)
+                            .destinoLng(tramo != null ? tramo.getDestinoLng() : null)
+                            .distanciaKm(tramo != null ? tramo.getDistanciaKm() : null)
+                            .tiempoMin(tramo != null ? tramo.getTiempoMin() : null)
+                            .costo(tramo != null ? tramo.getCosto() : null)
+                            .camionDominio(asignacion.getCamionDominio())
+                            .transportistaDni(asignacion.getTransportistaDni())
+                            .fechaAsignacion(asignacion.getFechaAsignacion())
+                            .fechaInicio(asignacion.getFechaInicio())
+                            .fechaFin(asignacion.getFechaFin())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }
 
