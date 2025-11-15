@@ -12,13 +12,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class GoogleMapsService {
 
-    @Value("${google.maps.api-key}")
+    @Value("${google.maps.api-key:}")
     private String googleMapsApiKey;
 
     private GeoApiContext geoApiContext;
 
     private GeoApiContext getGeoApiContext() {
-        if (geoApiContext == null) {
+        if (geoApiContext == null && googleMapsApiKey != null && !googleMapsApiKey.isBlank()) {
             geoApiContext = new GeoApiContext.Builder()
                     .apiKey(googleMapsApiKey)
                     .build();
@@ -27,10 +27,16 @@ public class GoogleMapsService {
     }
 
     /**
-     * Obtiene distancia y duración entre dos puntos usando Google Maps Distance Matrix API
+     * Obtiene distancia y duración entre dos puntos usando Google Maps Distance Matrix API.
+     * Si la API key no está configurada o la llamada falla, se usa un fallback (Haversine).
      */
-    public DistanceInfo getDistance(double originLat, double originLng, 
+    public DistanceInfo getDistance(double originLat, double originLng,
                                     double destLat, double destLng) {
+        if (googleMapsApiKey == null || googleMapsApiKey.isBlank()) {
+            log.warn("Google Maps API key no configurada. Usando fallback Haversine.");
+            return fallbackDistance(originLat, originLng, destLat, destLng, "api-key-missing");
+        }
+
         try {
             LatLng origin = new LatLng(originLat, originLng);
             LatLng destination = new LatLng(destLat, destLng);
@@ -42,11 +48,11 @@ public class GoogleMapsService {
 
             if (result.rows.length > 0 && result.rows[0].elements.length > 0) {
                 com.google.maps.model.DistanceMatrixElement element = result.rows[0].elements[0];
-                
+
                 if (element.distance != null && element.duration != null) {
                     double distanceKm = element.distance.inMeters / 1000.0;
                     int durationMin = (int) (element.duration.inSeconds / 60);
-                    
+
                     return DistanceInfo.builder()
                             .distanceKm(distanceKm)
                             .durationMinutes(durationMin)
@@ -54,15 +60,40 @@ public class GoogleMapsService {
                             .build();
                 }
             }
-            
-            log.warn("No valid route found between ({}, {}) and ({}, {})", 
+
+            log.warn("No se encontró ruta válida entre ({}, {}) y ({}, {})",
                     originLat, originLng, destLat, destLng);
-            return DistanceInfo.builder().success(false).build();
-            
+            return fallbackDistance(originLat, originLng, destLat, destLng, "no-route-found");
+
         } catch (Exception e) {
-            log.error("Error calling Google Maps API: {}", e.getMessage());
-            return DistanceInfo.builder().success(false).errorMessage(e.getMessage()).build();
+            log.error("Error llamando a Google Maps API: {}", e.getMessage());
+            return fallbackDistance(originLat, originLng, destLat, destLng, e.getMessage());
         }
+    }
+
+    private DistanceInfo fallbackDistance(double originLat, double originLng,
+                                          double destLat, double destLng,
+                                          String reason) {
+        double distanceKm = haversine(originLat, originLng, destLat, destLng);
+        int durationMin = Math.max(1, (int) Math.round(distanceKm));
+
+        return DistanceInfo.builder()
+                .distanceKm(distanceKm)
+                .durationMinutes(durationMin)
+                .success(true)
+                .errorMessage(reason)
+                .build();
+    }
+
+    private double haversine(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371;
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.round(R * c * 100.0) / 100.0;
     }
 
     public static class DistanceInfo {

@@ -146,7 +146,7 @@ services:
   solicitud-service:
     build: ./solicitud-service
     ports:
-      - "8086:8086"
+      - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://solicitud-db:5432/solicitud_db

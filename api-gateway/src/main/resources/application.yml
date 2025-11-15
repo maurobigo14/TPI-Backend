@@ -14,10 +14,13 @@ spring:
           uri: lb://contenedor-service
           predicates:
             - Path=/api/contenedores/**
-        - id: transporte
+        - id: camiones
           uri: lb://camion-service
           predicates:
             - Path=/api/camiones/**
+        - id: tarifas
+          uri: lb://tarifa-service
+          predicates:
             - Path=/api/tarifas/**
         - id: ruta
           uri: lb://ruta-service

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @FeignClient(
         name = "cliente-service",
-        url = "http://localhost:8081/api/clientes"
+        path = "/api/clientes"
 )
 public interface ClienteClient {
 

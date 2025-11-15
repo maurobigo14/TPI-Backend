@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class SolicitudResponse {
-    private Long id;
+    private Long numero;
     private Long contenedorId;
     private String clienteDni;
     private String estado;
