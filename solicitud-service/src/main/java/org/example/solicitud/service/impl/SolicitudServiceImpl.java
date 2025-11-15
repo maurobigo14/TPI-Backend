@@ -86,18 +86,29 @@ public class SolicitudServiceImpl implements SolicitudService {
                         throw new RuntimeException("El tramo ya ha sido iniciado");
                 }
 
-                asignacion.setFechaInicio(java.time.LocalDateTime.now());
-                asignacion.setEstado(EstadoAsignacion.EN_TRANSITO);
-                asignacionCamionRepository.save(asignacion);
+        asignacion.setFechaInicio(java.time.LocalDateTime.now());
+        asignacion.setEstado(EstadoAsignacion.EN_TRANSITO);
+        asignacionCamionRepository.save(asignacion);
 
-                // Actualizar estado del tramo
-                Tramo tramo = asignacion.getTramo();
-                tramo.setEstado(EstadoTramo.EN_TRANSITO);
-                tramoRepository.save(tramo);
+        // Actualizar estado del tramo
+        Tramo tramo = asignacion.getTramo();
+        tramo.setEstado(EstadoTramo.EN_TRANSITO);
+        tramoRepository.save(tramo);
 
-                return org.example.solicitud.dto.TramoEventoResponse.builder()
-                                .asignacionCamionId(asignacion.getId())
-                                .tramoId(asignacion.getTramo().getId())
+        // Marcar la solicitud en EN_TRANSITO al iniciar el primer tramo
+        Ruta ruta = tramo.getRuta();
+        if (ruta != null && ruta.getSolicitudId() != null) {
+                solicitudRepository.findById(ruta.getSolicitudId()).ifPresent(sol -> {
+                        if (sol.getEstado() != EstadoSolicitud.EN_TRANSITO) {
+                                sol.setEstado(EstadoSolicitud.EN_TRANSITO);
+                                solicitudRepository.save(sol);
+                        }
+                });
+        }
+
+        return org.example.solicitud.dto.TramoEventoResponse.builder()
+                        .asignacionCamionId(asignacion.getId())
+                        .tramoId(asignacion.getTramo().getId())
                                 .evento("INICIADO")
                                 .timestamp(asignacion.getFechaInicio())
                                 .mensaje("Tramo iniciado exitosamente")
@@ -142,6 +153,14 @@ public class SolicitudServiceImpl implements SolicitudService {
                 boolean todosCompletos = tramosRuta.stream().allMatch(t -> t.getEstado() == EstadoTramo.COMPLETADO);
                 if (todosCompletos) {
                         double distanciaTotal = tramosRuta.stream().mapToDouble(t -> t.getDistanciaKm() != null ? t.getDistanciaKm() : 0.0).sum();
+                        long tiempoRealTotalMin = tramosRuta.stream()
+                                        .mapToLong(t -> asignacionCamionRepository.findByTramoId(t.getId())
+                                                        .map(a -> (a.getFechaInicio() != null && a.getFechaFin() != null)
+                                                                        ? java.time.temporal.ChronoUnit.MINUTES.between(a.getFechaInicio(), a.getFechaFin())
+                                                                        : 0L)
+                                                        .orElse(0L))
+                                        .sum();
+                        int diasEstadia = (int) Math.ceil(tiempoRealTotalMin / 1440.0);
 
                         // Obtener contenedor para peso/volumen
                         Solicitud sol = solicitudRepository.findById(ruta.getSolicitudId()).orElse(null);
@@ -163,7 +182,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                                         .distanciaKm(distanciaTotal)
                                         .pesoKg(pesoKg)
                                         .volumenM3(volumenM3)
-                                        .diasEstadia(0)
+                                        .diasEstadia(diasEstadia)
                                         .build();
                         double costoFinalRuta = 0.0;
                         try {
@@ -176,25 +195,8 @@ public class SolicitudServiceImpl implements SolicitudService {
                         ruta.setCostoTotal(costoFinalRuta);
                         rutaRepository.save(ruta);
                         if (sol != null) {
-                                // Calcular tiempo real total: sumar duraciones de asignaciones
-                                long tiempoRealTotal = 0;
-                                for (Tramo t : tramosRuta) {
-                                        asignacionCamionRepository.findByTramoId(t.getId()).ifPresent(a -> {
-                                                if (a.getFechaInicio() != null && a.getFechaFin() != null) {
-                                                        long mins = java.time.temporal.ChronoUnit.MINUTES.between(a.getFechaInicio(), a.getFechaFin());
-                                                        // accumulate using array hack
-                                                        // we'll handle accumulation outside
-                                                }
-                                        });
-                                }
-                                // Sum durations properly
-                                long tiempoSum = tramosRuta.stream()
-                                                .mapToLong(t -> asignacionCamionRepository.findByTramoId(t.getId())
-                                                                .map(a -> (a.getFechaInicio() != null && a.getFechaFin() != null) ? java.time.temporal.ChronoUnit.MINUTES.between(a.getFechaInicio(), a.getFechaFin()) : 0L)
-                                                                .orElse(0L))
-                                                .sum();
                                 sol.setCostoFinal(costoFinalRuta);
-                                sol.setTiempoReal((int) tiempoSum);
+                                sol.setTiempoReal((int) tiempoRealTotalMin);
                                 // Marcar solicitud como entregada al completar todos los tramos
                                 sol.setEstado(org.example.solicitud.model.EstadoSolicitud.ENTREGADA);
                                 solicitudRepository.save(sol);

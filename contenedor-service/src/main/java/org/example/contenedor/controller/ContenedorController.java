@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/contenedores")
@@ -70,17 +69,6 @@ public class ContenedorController {
 
     @GetMapping("/pendientes/entrega")
     public List<ContenedorPendienteResponse> getPendientesDeEntrega() {
-        return contenedorService.findPendientesDeEntrega()
-                .stream()
-                .map(c -> ContenedorPendienteResponse.builder()
-                        .id(c.getId())
-                        .numeroIdentificacion(c.getNumeroIdentificacion())
-                        .peso(c.getPeso())
-                        .volumen(c.getVolumen())
-                        .estado(c.getEstado().getValor())
-                        .clienteDni(c.getClienteDni())
-                        .solicitudId(c.getSolicitudId())
-                        .build())
-                .collect(Collectors.toList());
+        return contenedorService.findPendientesDeEntrega();
     }
 }
