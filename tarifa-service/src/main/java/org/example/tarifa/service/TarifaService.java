@@ -36,7 +36,7 @@ public class TarifaService {
 
         double costoBaseKm = (t != null && t.getCostoBaseKm() != null) ? t.getCostoBaseKm() : 10.0; // ARS per km default
         double valorLitro = (t != null && t.getValorLitroCombustible() != null) ? t.getValorLitroCombustible() : 200.0;
-        double consumoKm = (t != null && t.getCosumoPromedioKm() != null) ? t.getCosumoPromedioKm() : 0.3; // litros/km
+        double consumoKm = (t != null && t.getConsumoPromedioKm() != null) ? t.getConsumoPromedioKm() : 0.3; // litros/km
         double costoEstadiaDiaria = (t != null && t.getCostoEstadiaDiaria() != null) ? t.getCostoEstadiaDiaria() : 1000.0;
         double cargoGestion = (t != null && t.getCargoGestion() != null) ? t.getCargoGestion() : 500.0;
 
