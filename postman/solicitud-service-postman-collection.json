@@ -1,0 +1,165 @@
+{
+	"info": {
+		"name": "Solicitud Service API",
+		"description": "Colección completa para probar solicitud-service - Endpoints faltantes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Crear Solicitud (Preparación)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cliente\": {\n        \"dni\": \"TEST-12345\",\n        \"nombre\": \"Test\",\n        \"apellido\": \"Usuario\",\n        \"email\": \"test@test.com\",\n        \"telefono\": \"1234567890\"\n    },\n    \"contenedor\": {\n        \"identificacion\": \"TEST-CONT-NEW\",\n        \"pesoKg\": 500.0,\n        \"volumenM3\": 30.0,\n        \"descripcion\": \"Contenedor nuevo para prueba\"\n    },\n    \"origenDireccion\": \"Buenos Aires, Argentina\",\n    \"origenLat\": -34.6037,\n    \"origenLng\": -58.3816,\n    \"destinoDireccion\": \"Córdoba, Argentina\",\n    \"destinoLat\": -31.4201,\n    \"destinoLng\": -64.1888\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/solicitudes",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "solicitudes"]
+				},
+				"description": "IMPORTANTE: Copia el 'numero' de la respuesta para usar en los siguientes requests como 'solicitudId'"
+			}
+		},
+		{
+			"name": "1. Rutas Tentativas",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cliente\": {\n        \"dni\": \"12345678\",\n        \"nombre\": \"Juan\",\n        \"apellido\": \"Perez\",\n        \"email\": \"juan.perez@example.com\",\n        \"telefono\": \"1234567890\"\n    },\n    \"contenedor\": {\n        \"identificacion\": \"CONT-001\",\n        \"pesoKg\": 500.0,\n        \"volumenM3\": 30.0,\n        \"descripcion\": \"Contenedor estandar\"\n    },\n    \"origenDireccion\": \"Buenos Aires, Argentina\",\n    \"origenLat\": -34.6037,\n    \"origenLng\": -58.3816,\n    \"destinoDireccion\": \"Rosario, Argentina\",\n    \"destinoLat\": -32.9442,\n    \"destinoLng\": -60.6505\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/solicitudes/rutas/tentativas",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "solicitudes", "rutas", "tentativas"]
+				}
+			}
+		},
+		{
+			"name": "2. Asignar Ruta",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"solicitudId\": 8,\n    \"descripcion\": \"Ruta directa\",\n    \"tramos\": [\n        {\n            \"numeroSecuencia\": 1,\n            \"origenDireccion\": \"Buenos Aires, Argentina\",\n            \"origenLat\": -34.6037,\n            \"origenLng\": -58.3816,\n            \"destinoDireccion\": \"Córdoba, Argentina\",\n            \"destinoLat\": -31.4201,\n            \"destinoLng\": -64.1888,\n            \"distanciaKm\": 700.0,\n            \"tiempoMin\": 420,\n            \"costo\": 10000.0\n        }\n    ],\n    \"distanciaTotalKm\": 700.0,\n    \"tiempoTotalMin\": 420,\n    \"costoTotal\": 10000.0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/solicitudes/rutas/asignar",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "solicitudes", "rutas", "asignar"]
+				},
+				"description": "IMPORTANTE: Cambia 'solicitudId' por el número de la solicitud que creaste en el paso 0. La solicitud NO debe tener ruta asignada previamente."
+			}
+		},
+		{
+			"name": "3. Asignar Camión a Tramo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tramoId\": 1,\n    \"camionDominio\": \"ABC123\",\n    \"transportistaDni\": \"DNI-TEST-001\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/solicitudes/tramos/asignar-camion",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "solicitudes", "tramos", "asignar-camion"]
+				},
+				"description": "IMPORTANTE:\n1. Cambia 'tramoId' por el ID del tramo obtenido en el paso 2 (Asignar Ruta)\n2. Crea un camión primero usando POST /api/camiones con dominio 'ABC123' o cambia 'camionDominio' por uno existente\n3. El 'camionDominio' debe ser un String (ej: 'ABC123', 'XYZ789'), NO un número"
+			}
+		},
+		{
+			"name": "4. Iniciar Tramo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"asignacionCamionId\": 1,\n    \"observaciones\": \"Iniciando tramo\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/solicitudes/tramos/1/iniciar",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "solicitudes", "tramos", "1", "iniciar"]
+				}
+			}
+		},
+		{
+			"name": "5. Finalizar Tramo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"asignacionCamionId\": 1,\n    \"observaciones\": \"Tramo finalizado correctamente\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/solicitudes/tramos/1/finalizar",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "solicitudes", "tramos", "1", "finalizar"]
+				}
+			}
+		},
+		{
+			"name": "6. Obtener Tramos de Transportista",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/solicitudes/transportistas/DNI-TEST-001/tramos",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "solicitudes", "transportistas", "DNI-TEST-001", "tramos"]
+				}
+			}
+		}
+	]
+}
+

@@ -31,11 +31,23 @@ public class CamionService {
     }
 
     public Camion updateCamion(String dominio, Camion camion) {
-        if (!camionRepository.existsById(dominio)) {
+        Optional<Camion> existingCamionOpt = camionRepository.findById(dominio);
+        if (existingCamionOpt.isEmpty()) {
             return null;
         }
-        camion.setDominio(dominio);
-        return camionRepository.save(camion);
+        Camion existingCamion = existingCamionOpt.get();
+        // Actualizar solo los campos que vienen en el request
+        if (camion.getNombreTransportista() != null) {
+            existingCamion.setNombreTransportista(camion.getNombreTransportista());
+        }
+        if (camion.getTelefono() != null) {
+            existingCamion.setTelefono(camion.getTelefono());
+        }
+        existingCamion.setCapacidadPeso(camion.getCapacidadPeso());
+        existingCamion.setCapacidadVolumen(camion.getCapacidadVolumen());
+        existingCamion.setDisponibilidad(camion.isDisponibilidad());
+        existingCamion.setCostos(camion.getCostos());
+        return camionRepository.save(existingCamion);
     }
 
     public boolean deleteCamion(String dominio) {

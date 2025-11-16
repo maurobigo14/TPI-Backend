@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class CamionResponse {
-    private Integer dominio;
+    private String dominio;
     private String nombreTransportista;
     private String telefono;
     private Double capacidadPeso;

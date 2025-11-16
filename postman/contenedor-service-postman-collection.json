@@ -1,0 +1,115 @@
+{
+	"info": {
+		"name": "Contenedor Service API",
+		"description": "Colección completa para probar contenedor-service - Endpoints faltantes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Crear Contenedor (Preparación)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"numeroIdentificacion\": \"TEST-CONT-001\",\n    \"peso\": 500,\n    \"volumen\": 30,\n    \"estado\": \"NUEVO\",\n    \"clienteDni\": \"12345678\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/contenedores",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "contenedores"]
+				}
+			}
+		},
+		{
+			"name": "1. Obtener Contenedor por ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/contenedores/11",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "contenedores", "11"]
+				},
+				"description": "NOTA: Cambia el ID '11' por el ID del contenedor que creaste en el paso anterior"
+			}
+		},
+		{
+			"name": "2. Obtener Contenedores por Cliente",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/contenedores/cliente/12345678",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "contenedores", "cliente", "12345678"]
+				}
+			}
+		},
+		{
+			"name": "3. Obtener Contenedores por Estado",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/contenedores/estado/NUEVO",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "contenedores", "estado", "NUEVO"]
+				}
+			}
+		},
+		{
+			"name": "4. Actualizar Contenedor",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"numeroIdentificacion\": \"TEST-CONT-001\",\n    \"peso\": 600,\n    \"volumen\": 35,\n    \"estado\": \"EN_TRANSITO\",\n    \"clienteDni\": \"12345678\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/contenedores/11",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "contenedores", "11"]
+				},
+				"description": "NOTA: Cambia el ID '11' por el ID del contenedor que creaste"
+			}
+		},
+		{
+			"name": "5. Eliminar Contenedor",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/contenedores/11",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "contenedores", "11"]
+				},
+				"description": "NOTA: Cambia el ID '11' por el ID del contenedor que quieres eliminar"
+			}
+		}
+	]
+}
+

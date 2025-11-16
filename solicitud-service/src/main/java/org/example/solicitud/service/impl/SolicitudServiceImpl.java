@@ -138,7 +138,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
                 // Si todos los tramos de la ruta están finalizados, calcular costo total y persistir
                 Ruta ruta = tramo.getRuta();
-                List<Tramo> tramosRuta = tramoRepository.findByRutaId(ruta.getId());
+                List<Tramo> tramosRuta = tramoRepository.findByRutaIdOrderByNumeroSecuenciaAsc(ruta.getId());
                 boolean todosCompletos = tramosRuta.stream().allMatch(t -> t.getEstado() == EstadoTramo.COMPLETADO);
                 if (todosCompletos) {
                         double distanciaTotal = tramosRuta.stream().mapToDouble(t -> t.getDistanciaKm() != null ? t.getDistanciaKm() : 0.0).sum();
@@ -158,12 +158,15 @@ public class SolicitudServiceImpl implements SolicitudService {
                                 }
                         }
 
+                        // Calcular días de estadía en depósitos
+                        int diasEstadia = calcularDiasEstadiaEnDepositos(tramosRuta);
+
                         // Llamar a tarifa-service
                         org.example.solicitud.dto.tarifa.TarifaCalcRequest tarifaReq = org.example.solicitud.dto.tarifa.TarifaCalcRequest.builder()
                                         .distanciaKm(distanciaTotal)
                                         .pesoKg(pesoKg)
                                         .volumenM3(volumenM3)
-                                        .diasEstadia(0)
+                                        .diasEstadia(diasEstadia)
                                         .build();
                         double costoFinalRuta = 0.0;
                         try {
@@ -700,6 +703,64 @@ public class SolicitudServiceImpl implements SolicitudService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Calcula los días totales de estadía en depósitos entre tramos consecutivos.
+     * La estadía se calcula cuando un tramo termina en un depósito y el siguiente tramo
+     * comienza desde ese mismo depósito.
+     * 
+     * @param tramosRuta Lista de tramos ordenados por numeroSecuencia
+     * @return Total de días de estadía en depósitos
+     */
+    private int calcularDiasEstadiaEnDepositos(List<Tramo> tramosRuta) {
+        int diasTotales = 0;
+        
+        // Iterar sobre pares consecutivos de tramos
+        for (int i = 0; i < tramosRuta.size() - 1; i++) {
+            Tramo tramoActual = tramosRuta.get(i);
+            Tramo tramoSiguiente = tramosRuta.get(i + 1);
+            
+            // Verificar si el destino del tramo actual es un depósito
+            // (detectado por nombre que contiene "Depósito" o similar)
+            String destinoActual = tramoActual.getDestinoDireccion();
+            String origenSiguiente = tramoSiguiente.getOrigenDireccion();
+            
+            if (destinoActual != null && origenSiguiente != null) {
+                // Verificar si el destino es un depósito (contiene "Depósito" o "Deposito")
+                boolean esDeposito = destinoActual.toLowerCase().contains("depósito") || 
+                                     destinoActual.toLowerCase().contains("deposito");
+                
+                // Verificar si el siguiente tramo comienza desde el mismo depósito
+                boolean mismoDeposito = destinoActual.equalsIgnoreCase(origenSiguiente);
+                
+                if (esDeposito && mismoDeposito) {
+                    // Obtener las asignaciones de camión para ambos tramos
+                    Optional<AsignacionCamion> asignacionActual = asignacionCamionRepository.findByTramoId(tramoActual.getId());
+                    Optional<AsignacionCamion> asignacionSiguiente = asignacionCamionRepository.findByTramoId(tramoSiguiente.getId());
+                    
+                    if (asignacionActual.isPresent() && asignacionSiguiente.isPresent()) {
+                        AsignacionCamion asignActual = asignacionActual.get();
+                        AsignacionCamion asignSiguiente = asignacionSiguiente.get();
+                        
+                        // Calcular días entre fechaFin del tramo actual y fechaInicio del siguiente
+                        if (asignActual.getFechaFin() != null && asignSiguiente.getFechaInicio() != null) {
+                            long dias = java.time.temporal.ChronoUnit.DAYS.between(
+                                    asignActual.getFechaFin(), 
+                                    asignSiguiente.getFechaInicio()
+                            );
+                            
+                            // Si hay diferencia, agregar los días (puede ser negativo si hay error, usar Math.max)
+                            if (dias > 0) {
+                                diasTotales += (int) dias;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return diasTotales;
     }
 }
 

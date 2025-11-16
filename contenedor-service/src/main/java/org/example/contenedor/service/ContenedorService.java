@@ -32,11 +32,18 @@ public class ContenedorService {
     }
 
     public List<Contenedor> findByEstado(String estado) {
-        return contenedorRepository.findByEstado(estado);
+        try {
+            // Convertir el String al enum EstadoContenedor
+            EstadoContenedor estadoEnum = EstadoContenedor.valueOf(estado.toUpperCase());
+            return contenedorRepository.findByEstado(estadoEnum);
+        } catch (IllegalArgumentException e) {
+            // Si el estado no es válido, retornar lista vacía
+            return List.of();
+        }
     }
 
     public List<Contenedor> findPendientesDeEntrega() {
-        return contenedorRepository.findByEstado("EN_TRANSITO");
+        return contenedorRepository.findByEstado(EstadoContenedor.EN_TRANSITO);
     }
 
     public Contenedor save(Contenedor contenedor) {

@@ -1,0 +1,63 @@
+{
+	"info": {
+		"name": "Ruta Service API",
+		"description": "Colección completa para probar ruta-service - Endpoints básicos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Listar Todas las Rutas",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/rutas",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "rutas"]
+				}
+			}
+		},
+		{
+			"name": "2. Obtener Rutas por Solicitud",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/rutas/solicitud/1",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "rutas", "solicitud", "1"]
+				},
+				"description": "IMPORTANTE: Cambia '1' por el ID de la solicitud. Retorna todas las rutas asociadas a esa solicitud."
+			}
+		},
+		{
+			"name": "3. Crear Ruta",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"solicitudId\": 1,\n    \"cantidadTramos\": 2,\n    \"cantidadDepositos\": 1\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/rutas",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "rutas"]
+				},
+				"description": "IMPORTANTE:\n- Cambia 'solicitudId' por el ID de una solicitud existente\n- Este endpoint crea una ruta básica. Las rutas completas con tramos se crean a través de solicitud-service al asignar una ruta\n- Nota: Este servicio es principalmente de consulta. Las rutas se crean automáticamente cuando se asigna una ruta a una solicitud en solicitud-service"
+			}
+		}
+	]
+}
+

@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface TramoRepository extends JpaRepository<Tramo, Long> {
     List<Tramo> findByRutaId(Long rutaId);
+    List<Tramo> findByRutaIdOrderByNumeroSecuenciaAsc(Long rutaId);
 }

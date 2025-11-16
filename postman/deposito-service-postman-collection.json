@@ -1,0 +1,98 @@
+{
+	"info": {
+		"name": "Deposito Service API",
+		"description": "Colección completa para probar deposito-service - Endpoints faltantes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Listar Depósitos Activos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/depositos/activos",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "depositos", "activos"]
+				}
+			}
+		},
+		{
+			"name": "2. Obtener Depósitos por Ciudad",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/depositos/ciudad/Buenos Aires",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "depositos", "ciudad", "Buenos Aires"]
+				}
+			}
+		},
+		{
+			"name": "3. Crear Depósito",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nombre\": \"Depósito Central\",\n    \"direccion\": \"Av. Corrientes 1234\",\n    \"ciudad\": \"Buenos Aires\",\n    \"costoEstadiaPorDia\": 50.0,\n    \"capacidadMaxima\": 1000.0,\n    \"activo\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/depositos",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "depositos"]
+				}
+			}
+		},
+		{
+			"name": "4. Actualizar Depósito",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nombre\": \"Depósito Central Actualizado\",\n    \"direccion\": \"Av. Corrientes 1234\",\n    \"ciudad\": \"Buenos Aires\",\n    \"costoEstadiaPorDia\": 55.0,\n    \"capacidadMaxima\": 1200.0,\n    \"activo\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/depositos/1",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "depositos", "1"]
+				}
+			}
+		},
+		{
+			"name": "5. Eliminar Depósito",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/depositos/1",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "depositos", "1"]
+				}
+			}
+		}
+	]
+}
+
