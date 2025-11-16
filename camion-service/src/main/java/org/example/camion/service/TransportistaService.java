@@ -26,7 +26,7 @@ public class TransportistaService {
     }
 
     public List<Transportista> obtenerPorCamion(String dominio) {
-        return transportistaRepository.findByCamionDominio(dominio);
+        return transportistaRepository.findByCamion_Dominio(dominio);
     }
 
     public Transportista actualizar(Long id, Transportista transportista) {

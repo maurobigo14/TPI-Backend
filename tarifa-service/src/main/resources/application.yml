@@ -39,3 +39,8 @@ spring:
     url: jdbc:postgresql://tarifa-db:5432/tarifa_db
     username: tarifa_user
     password: tarifa_pass
+
+spring:
+  cloud:
+    compatibility-verifier:
+      enabled: false
