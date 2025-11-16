@@ -19,11 +19,17 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
 
+solicitud-service:
+  url: ${SOLICITUD_SERVICE_URL:http://localhost:8085}
 
 # ============================
 #   PERFIL DOCKER
@@ -45,4 +51,8 @@ spring:
 
 eureka:
   client:
-    servi
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka/
+
+solicitud-service:
+  url: http://solicitud-service:8085

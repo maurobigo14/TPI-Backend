@@ -173,7 +173,7 @@ services:
   ruta-service:
     build: ./ruta-service
     ports:
-      - "8087:8087"
+      - "8086:8086"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ruta-db:5432/ruta_db
@@ -184,6 +184,7 @@ services:
       - eureka-server
     networks:
       - backend-net
+
 
   ruta-db:
     image: postgres:15-alpine
@@ -199,7 +200,7 @@ services:
   tarifa-service:
     build: ./tarifa-service
     ports:
-      - "8089:8089"
+      - "8087:8087"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://tarifa-db:5432/tarifa_db
