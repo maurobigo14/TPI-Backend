@@ -195,8 +195,7 @@ services:
       - ruta-data:/var/lib/postgresql/data
     networks:
       - backend-net
-
-  # 💰 Tarifa Service
+    # 💰 Tarifa Service
   tarifa-service:
     build: ./tarifa-service
     ports:
@@ -207,8 +206,10 @@ services:
       - SPRING_DATASOURCE_USERNAME=tarifa_user
       - SPRING_DATASOURCE_PASSWORD=tarifa_pass
     depends_on:
-      - tarifa-db
-      - eureka-server
+      tarifa-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
     networks:
       - backend-net
 
@@ -222,6 +223,11 @@ services:
       - tarifa-data:/var/lib/postgresql/data
     networks:
       - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tarifa_user -d tarifa_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 # 💾 Volúmenes persistentes
 volumes:

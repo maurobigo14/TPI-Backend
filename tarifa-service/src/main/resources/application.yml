@@ -4,10 +4,12 @@ server:
 spring:
   application:
     name: tarifa-service
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tpi}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -22,25 +24,25 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
 
+
+# ============================
+#   PERFIL DOCKER
+# ============================
 ---
-# docker profile
 spring:
   config:
     activate:
       on-profile: docker
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://eureka-server:8761/eureka/
-  
-# datasource override for docker
-spring:
+
   datasource:
     url: jdbc:postgresql://tarifa-db:5432/tarifa_db
     username: tarifa_user
     password: tarifa_pass
 
-spring:
   cloud:
     compatibility-verifier:
       enabled: false
+
+eureka:
+  client:
+    servi
