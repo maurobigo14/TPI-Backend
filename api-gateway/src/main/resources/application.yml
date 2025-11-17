@@ -1,7 +1,7 @@
 spring:
   application:
     name: api-gateway
-    
+
   security:
     oauth2:
       resourceserver:
@@ -24,6 +24,10 @@ spring:
           uri: lb://camion-service
           predicates:
             - Path=/api/camiones/**
+        - id: transportistas
+          uri: lb://camion-service
+          predicates:
+            - Path=/api/transportistas/**
         - id: tarifas
           uri: lb://tarifa-service
           predicates:
@@ -40,6 +44,10 @@ spring:
           uri: lb://solicitud-service
           predicates:
             - Path=/api/solicitudes/**
+        - id: google-maps
+          uri: lb://solicitud-service
+          predicates:
+            - Path=/api/google-maps/**
 
 server:
   port: 8080

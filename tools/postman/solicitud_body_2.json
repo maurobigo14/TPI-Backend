@@ -1,0 +1,21 @@
+{
+  "cliente": {
+    "dni": "20444555",
+    "nombre": "Martín",
+    "apellido": "Ruiz",
+    "email": "martin.ruiz@ejemplo.com",
+    "telefono": "1166660022"
+  },
+  "contenedor": {
+    "identificacion": "CONT-102",
+    "pesoKg": 1200.0,
+    "volumenM3": 30.0,
+    "descripcion": "Muebles"
+  },
+  "origenDireccion": "Depósito Oeste, Calle 20 400",
+  "origenLat": -34.6200,
+  "origenLng": -58.3900,
+  "destinoDireccion": "Centro Logístico, Av. 50 200",
+  "destinoLat": -34.6100,
+  "destinoLng": -58.4100
+}

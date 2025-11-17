@@ -1,0 +1,30 @@
+{
+  "solicitudId": 0,
+  "descripcion": "Asignación automática - ejemplo",
+  "tramos": [
+    {
+      "numeroSecuencia": 1,
+      "origenDireccion": "Depósito Norte, Calle 10 100",
+      "origenLat": -34.5871,
+      "origenLng": -58.3926,
+      "destinoDireccion": "Depósito Intermedio",
+      "destinoLat": -34.6200,
+      "destinoLng": -58.4000,
+      "distanciaKm": 12.0,
+      "tiempoMin": 25,
+      "costo": 120.0
+    },
+    {
+      "numeroSecuencia": 2,
+      "origenDireccion": "Depósito Intermedio",
+      "origenLat": -34.6200,
+      "origenLng": -58.4000,
+      "destinoDireccion": "Planta Sur, Av. 200 50",
+      "destinoLat": -34.7000,
+      "destinoLng": -58.4200,
+      "distanciaKm": 10.5,
+      "tiempoMin": 20,
+      "costo": 100.0
+    }
+  ]
+}

@@ -31,19 +31,13 @@ public class SecurityConfig {
                         "/swagger-ui.html"
                 ).permitAll()
 
-                // 🔒 CAMIONES → OPERADOR / ADMIN
+                // 🔒 CAMIONES → OPERADOR (carga y actualiza camiones)
                 .requestMatchers("/camiones/**")
-                    .hasAnyRole("OPERADOR", "ADMIN")
+                    .hasRole("OPERADOR")
 
-                // 🔒 TRAMOS PARA TRANSPORTISTA
-                .requestMatchers("/tramos/asignados/**")
-                    .hasRole("TRANSPORTISTA")
-
-                .requestMatchers("/tramos/inicio/**")
-                    .hasRole("TRANSPORTISTA")
-
-                .requestMatchers("/tramos/fin/**")
-                    .hasRole("TRANSPORTISTA")
+                // 🔒 TRANSPORTISTAS → OPERADOR (carga y actualiza transportistas)
+                .requestMatchers("/transportistas/**")
+                    .hasRole("OPERADOR")
 
                 // 🔒 cualquier otro endpoint requiere estar autenticado
                 .anyRequest().authenticated()
@@ -68,6 +62,7 @@ public class SecurityConfig {
             if (realmAccess == null || realmAccess.get("roles") == null)
                 return List.of();
 
+            @SuppressWarnings("unchecked")
             List<String> roles = (List<String>) realmAccess.get("roles");
 
             return roles.stream()

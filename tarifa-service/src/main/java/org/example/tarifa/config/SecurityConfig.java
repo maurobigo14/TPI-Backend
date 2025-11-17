@@ -22,10 +22,15 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .requestMatchers(
+                        "/actuator/health",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                ).permitAll()
 
-                // CRUD tarifas → OPERADOR / ADMIN
-                .requestMatchers("/tarifas/**").hasAnyRole("OPERADOR", "ADMIN")
+                // OPERADOR modifica parámetros de tarifación
+                .requestMatchers("/tarifas/**").hasRole("OPERADOR")
 
                 .anyRequest().authenticated()
             )
@@ -48,7 +53,10 @@ public class SecurityConfig {
             if (realmAccess == null || realmAccess.get("roles") == null)
                 return List.of();
 
-            return ((List<String>) realmAccess.get("roles")).stream()
+            @SuppressWarnings("unchecked")
+            List<String> roles = (List<String>) realmAccess.get("roles");
+
+            return roles.stream()
                     .map(r -> "ROLE_" + r)
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());

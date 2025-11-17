@@ -1,0 +1,21 @@
+{
+  "cliente": {
+    "dni": "20111222",
+    "nombre": "Lucia",
+    "apellido": "Gomez",
+    "email": "lucia.gomez@ejemplo.com",
+    "telefono": "1155550011"
+  },
+  "contenedor": {
+    "identificacion": "CONT-101",
+    "pesoKg": 800.0,
+    "volumenM3": 20.0,
+    "descripcion": "Electrodomésticos"
+  },
+  "origenDireccion": "Depósito Norte, Calle 10 100",
+  "origenLat": -34.5871,
+  "origenLng": -58.3926,
+  "destinoDireccion": "Planta Sur, Av. 200 50",
+  "destinoLat": -34.7000,
+  "destinoLng": -58.4200
+}

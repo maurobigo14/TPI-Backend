@@ -41,11 +41,9 @@ solicitud-service:
 #   PERFIL DOCKER
 # ============================
 ---
-spring:
-  config:
-    activate:
-      on-profile: docker
+spring.config.activate.on-profile: docker
 
+spring:
   datasource:
     url: jdbc:postgresql://tarifa-db:5432/tarifa_db
     username: tarifa_user

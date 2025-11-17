@@ -47,10 +47,32 @@ public class ContenedorService {
     }
 
     public Contenedor save(Contenedor contenedor) {
+        if (contenedor.getNumeroIdentificacion() != null) {
+            var existing = contenedorRepository.findByNumeroIdentificacion(contenedor.getNumeroIdentificacion());
+            if (existing.isPresent()) {
+                throw new IllegalStateException("Contenedor con numeroIdentificacion ya existe: " + contenedor.getNumeroIdentificacion());
+            }
+        }
         return contenedorRepository.save(contenedor);
     }
 
     public void deleteById(Integer id) {
         contenedorRepository.deleteById(id);
+    }
+
+    /**
+     * Obtiene la ubicación actual del contenedor basándose en el último tramo completado.
+     * Debe ser invocado desde el solicitud-service que tiene acceso a los tramos.
+     * La ubicación real se determina por: depósito destino del último tramo COMPLETADO.
+     * @param contenedorId ID del contenedor
+     * @return String con la ubicación actual (nombre del depósito)
+     */
+    public String obtenerUbicacionActual(Integer contenedorId) {
+        // Esta lógica requiere comunicación con solicitud-service via Feign Client
+        // para obtener la información de tramos completados.
+        // Por ahora retornamos un placeholder indicando que debe implementarse la integración.
+        throw new UnsupportedOperationException(
+            "La ubicación actual debe obtenerse desde solicitud-service consultando el último tramo completado"
+        );
     }
 }

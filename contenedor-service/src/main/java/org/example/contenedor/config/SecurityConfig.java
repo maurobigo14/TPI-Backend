@@ -23,18 +23,21 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .requestMatchers(
+                        "/actuator/health",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                ).permitAll()
 
-                // CLIENTE puede registrar contenedor
-                .requestMatchers(HttpMethod.POST, "/contenedores/**").hasRole("CLIENTE")
+                // OPERADOR carga y actualiza contenedores
+                .requestMatchers(HttpMethod.POST, "/contenedores/**").hasRole("OPERADOR")
+                .requestMatchers(HttpMethod.PUT, "/contenedores/**").hasRole("OPERADOR")
+                .requestMatchers(HttpMethod.DELETE, "/contenedores/**").hasRole("OPERADOR")
 
-                // OPERADOR/ADMIN puede modificar
-                .requestMatchers(HttpMethod.PUT, "/contenedores/**").hasAnyRole("OPERADOR", "ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/contenedores/**").hasAnyRole("OPERADOR", "ADMIN")
-
-                // CLIENTE, OPERADOR y ADMIN pueden consultar
+                // CLIENTE puede consultar estado de su contenedor (seguimiento)
                 .requestMatchers(HttpMethod.GET, "/contenedores/**")
-                    .hasAnyRole("CLIENTE", "OPERADOR", "ADMIN")
+                    .hasAnyRole("CLIENTE", "OPERADOR")
 
                 .anyRequest().authenticated()
             )
@@ -56,7 +59,10 @@ public class SecurityConfig {
             if (realmAccess == null || realmAccess.get("roles") == null)
                 return List.of();
 
-            return ((List<String>) realmAccess.get("roles")).stream()
+            @SuppressWarnings("unchecked")
+            List<String> roles = (List<String>) realmAccess.get("roles");
+
+            return roles.stream()
                     .map(r -> "ROLE_" + r)
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());

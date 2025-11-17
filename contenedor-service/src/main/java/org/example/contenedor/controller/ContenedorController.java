@@ -44,8 +44,17 @@ public class ContenedorController {
     }
 
     @PostMapping
-    public Contenedor createContenedor(@RequestBody Contenedor contenedor) {
-        return contenedorService.save(contenedor);
+    public ResponseEntity<?> createContenedor(@RequestBody Contenedor contenedor) {
+        try {
+            Contenedor saved = contenedorService.save(contenedor);
+            return ResponseEntity.status(201).body(saved);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(409).body(e.getMessage());
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.status(409).body("Constraint violation: " + e.getMostSpecificCause().getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al crear contenedor: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
@@ -82,5 +91,22 @@ public class ContenedorController {
                         .solicitudId(c.getSolicitudId())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Endpoint para obtener la ubicación actual del contenedor.
+     * La ubicación se determina consultando el último tramo completado de la ruta.
+     * Requiere integración con solicitud-service para obtener información de tramos.
+     */
+    @GetMapping("/{id}/ubicacion-actual")
+    public ResponseEntity<String> getUbicacionActual(@PathVariable Integer id) {
+        try {
+            String ubicacion = contenedorService.obtenerUbicacionActual(id);
+            return ResponseEntity.ok(ubicacion);
+        } catch (UnsupportedOperationException e) {
+            return ResponseEntity.status(501).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener ubicación: " + e.getMessage());
+        }
     }
 }

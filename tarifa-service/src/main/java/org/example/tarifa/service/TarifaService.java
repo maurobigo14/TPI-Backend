@@ -49,7 +49,9 @@ public class TarifaService {
         double cargoGestion = (t != null && t.getCargoGestion() != null) ? t.getCargoGestion() : 500.0;
 
         double distancia = req.getDistanciaKm();
-        int dias = Math.max(0, req.getDiasEstadia());
+        // Calcular días de estadía automáticamente desde fechas de asignación si están disponibles
+        int dias = calcularDiasEstadia(req);
+        dias = Math.max(0, dias);
 
         double costoKm = distancia * costoBaseKm;
         double costoCombustible = distancia * consumoKm * valorLitro;
@@ -66,5 +68,19 @@ public class TarifaService {
                 .costoTotal(total)
                 .moneda("ARS")
                 .build();
+    }
+
+    /**
+     * Calcula los días de estadía basándose en las fechas de asignación.
+     * Si no hay fechas disponibles, usa el valor proporcionado en la request.
+     */
+    private int calcularDiasEstadia(org.example.tarifa.dto.TarifaCalcRequest req) {
+        // Si se proporcionan fechas, calcular diferencia en días
+        if (req.getFechaInicio() != null && req.getFechaFin() != null) {
+            long diffMillis = req.getFechaFin().toEpochMilli() - req.getFechaInicio().toEpochMilli();
+            return (int) Math.ceil(diffMillis / (1000.0 * 60 * 60 * 24));
+        }
+        // Si no hay fechas, usar el valor proporcionado directamente (default 0)
+        return req.getDiasEstadia();
     }
 }

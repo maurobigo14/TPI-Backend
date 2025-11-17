@@ -37,6 +37,9 @@ public class Camion {
     @Column(name = "costos", nullable = false)
     private double costos;
 
+    @Column(name = "consumo_combustible")
+    private Double consumoCombustible; // litros por km
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

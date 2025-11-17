@@ -1,0 +1,18 @@
+{
+  "solicitudId": 8,
+  "descripcion": "Asignación automática - ruta directa",
+  "tramos": [
+    {
+      "numeroSecuencia": 1,
+      "origenDireccion": "Depósito Norte, Calle 10 100",
+      "origenLat": -34.5871,
+      "origenLng": -58.3926,
+      "destinoDireccion": "Planta Sur, Av. 200 50",
+      "destinoLat": -34.7,
+      "destinoLng": -58.42,
+      "distanciaKm": 12.8,
+      "tiempoMin": 13,
+      "costo": 26.16
+    }
+  ]
+}

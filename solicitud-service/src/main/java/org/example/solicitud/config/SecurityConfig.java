@@ -24,18 +24,31 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .requestMatchers(
+                        "/actuator/health",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                ).permitAll()
 
-                // CLIENTE crea solicitudes
-                .requestMatchers(HttpMethod.POST, "/solicitudes/**").hasRole("CLIENTE")
+                // CLIENTE registra solicitud (pedido de traslado)
+                .requestMatchers(HttpMethod.POST, "/solicitudes").hasRole("CLIENTE")
 
-                // OPERADOR programa o cambia estado
-                .requestMatchers("/solicitudes/programar/**").hasRole("OPERADOR")
-                .requestMatchers("/solicitudes/estado/**").hasRole("OPERADOR")
-
-                // CLIENTE, OPERADOR, ADMIN pueden consultar
+                // CLIENTE consulta estado de su contenedor y solicitudes
                 .requestMatchers(HttpMethod.GET, "/solicitudes/**")
-                    .hasAnyRole("CLIENTE", "OPERADOR", "ADMIN")
+                    .hasAnyRole("CLIENTE", "OPERADOR")
+
+                // OPERADOR genera rutas tentativas (costo y tiempo estimado)
+                .requestMatchers(HttpMethod.POST, "/solicitudes/rutas/tentativas").hasRole("OPERADOR")
+
+                // OPERADOR asigna rutas y camiones a tramos
+                .requestMatchers(HttpMethod.POST, "/solicitudes/rutas/asignar").hasRole("OPERADOR")
+                .requestMatchers(HttpMethod.POST, "/solicitudes/tramos/asignar-camion").hasRole("OPERADOR")
+
+                // TRANSPORTISTA registra inicio/fin de tramo y ve sus tramos asignados
+                .requestMatchers(HttpMethod.POST, "/solicitudes/tramos/*/iniciar").hasRole("TRANSPORTISTA")
+                .requestMatchers(HttpMethod.POST, "/solicitudes/tramos/*/finalizar").hasRole("TRANSPORTISTA")
+                .requestMatchers(HttpMethod.GET, "/solicitudes/transportistas/*/tramos").hasRole("TRANSPORTISTA")
 
                 .anyRequest().authenticated()
             )
@@ -56,7 +69,10 @@ public class SecurityConfig {
             if (realmAccess == null || realmAccess.get("roles") == null)
                 return List.of();
 
-            return ((List<String>) realmAccess.get("roles")).stream()
+            @SuppressWarnings("unchecked")
+            List<String> roles = (List<String>) realmAccess.get("roles");
+
+            return roles.stream()
                     .map(r -> "ROLE_" + r)
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());

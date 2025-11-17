@@ -31,20 +31,20 @@ public class SecurityConfig {
                         "/swagger-ui.html"
                 ).permitAll()
 
-                // alta de clientes → permitimos CLIENTE y OPERADOR/ADMIN
+                // CLIENTE puede registrarse (auto-registro)
                 .requestMatchers(HttpMethod.POST, "/clientes/**")
-                    .hasAnyRole("CLIENTE", "OPERADOR", "ADMIN")
+                    .hasAnyRole("CLIENTE", "OPERADOR")
 
-                // lectura de clientes → todos los roles
+                // lectura de clientes → CLIENTE y OPERADOR
                 .requestMatchers(HttpMethod.GET, "/clientes/**")
-                    .hasAnyRole("CLIENTE", "OPERADOR", "ADMIN")
+                    .hasAnyRole("CLIENTE", "OPERADOR")
 
-                // modificaciones → OPERADOR o ADMIN
+                // OPERADOR puede modificar clientes
                 .requestMatchers(HttpMethod.PUT, "/clientes/**")
-                    .hasAnyRole("OPERADOR", "ADMIN")
+                    .hasRole("OPERADOR")
 
                 .requestMatchers(HttpMethod.DELETE, "/clientes/**")
-                    .hasAnyRole("OPERADOR", "ADMIN")
+                    .hasRole("OPERADOR")
 
                 .anyRequest().authenticated()
             )
@@ -66,6 +66,7 @@ public class SecurityConfig {
             if (realmAccess == null || realmAccess.get("roles") == null)
                 return List.of();
 
+            @SuppressWarnings("unchecked")
             List<String> roles = (List<String>) realmAccess.get("roles");
 
             return roles.stream()
