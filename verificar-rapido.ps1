@@ -25,10 +25,10 @@ function Test-Endpoint {
         [int]$ExpectedStatus = 200
     )
     
-    $testsTotal++
+    $script:testsTotal++
     $uri = "$BaseUrl$Path"
     
-    Write-Host "[TEST $testsTotal] $Description" -ForegroundColor Yellow
+    Write-Host "[TEST $script:testsTotal] $Description" -ForegroundColor Yellow
     Write-Host "  $Method $Path" -ForegroundColor Gray
     
     try {
@@ -108,7 +108,7 @@ if ($clienteCreado) {
 # 3. CRUD Contenedor
 Write-Host "`n[3] CRUD Contenedor..." -ForegroundColor Cyan
 $contenedorBody = @{
-    numeroIdentificacion = "TEST-CONT-001"
+    numeroIdentificacion = ("TEST-CONT-" + (Get-Date -Format 'yyMMddHHmmss'))
     peso = 500
     volumen = 30
     estado = "NUEVO"
@@ -121,8 +121,9 @@ if ($contenedorCreado) {
 
 # 4. CRUD Camion
 Write-Host "`n[4] CRUD Camion..." -ForegroundColor Cyan
+$camionDominio = ("TC" + (Get-Date -Format 'yyMMddHHmm'))
 $camionBody = @{
-    dominio = "TEST-CAM-001"
+    dominio = $camionDominio
     nombreTransportista = "J. Perez"
     telefono = "1234567890"
     capacidadPeso = 10000.0
@@ -132,17 +133,18 @@ $camionBody = @{
 }
 $camionCreado = Test-Endpoint -Method "POST" -Path "/api/camiones" -Body $camionBody -Description "Crear camión"
 if ($camionCreado) {
-    Test-Endpoint -Method "GET" -Path "/api/camiones/TEST-CAM-001" -Description "Obtener camión por dominio"
+    Test-Endpoint -Method "GET" -Path ("/api/camiones/" + $camionDominio) -Description "Obtener camión por dominio"
     Test-Endpoint -Method "GET" -Path "/api/camiones/disponibles" -Description "Obtener camiones disponibles"
 }
 
 # 5. CRUD Deposito
 Write-Host "`n[5] CRUD Deposito..." -ForegroundColor Cyan
 $depositoBody = @{
-    nombre = "Deposito Test"
+    nombre = ("Deposito Test " + (Get-Date -Format 'yyyyMMddHHmmss'))
     direccion = "Calle Test 123"
     ciudad = "Buenos Aires"
-    capacidadMaxima = 100
+    costoEstadiaPorDia = 50.0
+    capacidadMaxima = 100.0
     activo = $true
 }
 $depositoCreado = Test-Endpoint -Method "POST" -Path "/api/depositos" -Body $depositoBody -Description "Crear depósito"
@@ -217,7 +219,11 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Total de pruebas: $testsTotal" -ForegroundColor White
 Write-Host "Exitosas: $testsPassed" -ForegroundColor Green
 Write-Host "Fallidas: $testsFailed" -ForegroundColor Red
-Write-Host "Porcentaje de éxito: $([math]::Round(($testsPassed / $testsTotal) * 100, 2))%" -ForegroundColor $(if ($testsFailed -eq 0) { "Green" } else { "Yellow" })
+if ($testsTotal -gt 0) {
+    Write-Host "Porcentaje de éxito: $([math]::Round(($testsPassed / $testsTotal) * 100, 2))%" -ForegroundColor $(if ($testsFailed -eq 0) { "Green" } else { "Yellow" })
+} else {
+    Write-Host "Porcentaje de éxito: N/A (sin pruebas contabilizadas)" -ForegroundColor Yellow
+}
 
 if ($testsFailed -eq 0) {
     Write-Host "`n✅ TODAS LAS PRUEBAS PASARON" -ForegroundColor Green

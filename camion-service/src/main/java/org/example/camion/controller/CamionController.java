@@ -40,17 +40,30 @@ public class CamionController {
     }
 
     @PostMapping
-    public ResponseEntity<Camion> createCamion(@RequestBody Camion camion) {
-        return ResponseEntity.status(201).body(camionService.saveCamion(camion));
+    public ResponseEntity<?> createCamion(@RequestBody Camion camion) {
+        try {
+            Camion saved = camionService.saveCamion(camion);
+            return ResponseEntity.status(201).body(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(java.util.Map.of("error", "Error al crear el camión: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/{dominio}")
-    public ResponseEntity<Camion> updateCamion(@PathVariable String dominio, @RequestBody Camion camion) {
-        Camion updated = camionService.updateCamion(dominio, camion);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateCamion(@PathVariable String dominio, @RequestBody Camion camion) {
+        try {
+            Camion updated = camionService.updateCamion(dominio, camion);
+            if (updated == null) {
+                return ResponseEntity.status(404).body(java.util.Map.of("error", "Camión no encontrado con dominio: " + dominio));
+            }
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(java.util.Map.of("error", "Error al actualizar el camión: " + e.getMessage()));
         }
-        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{dominio}")

@@ -407,6 +407,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         // Armar respuesta
         java.util.List<org.example.solicitud.dto.TramoResponse> tramosResponse = tramosGuardados.stream()
                 .map(t -> org.example.solicitud.dto.TramoResponse.builder()
+                        .id(t.getId())
                         .origenDireccion(t.getOrigenDireccion())
                         .origenLat(t.getOrigenLat())
                         .origenLng(t.getOrigenLng())

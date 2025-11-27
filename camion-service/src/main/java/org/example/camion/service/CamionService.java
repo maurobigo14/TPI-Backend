@@ -27,11 +27,43 @@ public class CamionService {
     }
 
     public Camion saveCamion(Camion camion) {
+        // Validar que el dominio no esté vacío
+        if (camion.getDominio() == null || camion.getDominio().trim().isEmpty()) {
+            throw new IllegalArgumentException("El dominio del camión no puede estar vacío");
+        }
+        
+        // Validar que el dominio no exista
+        if (camionRepository.findByDominio(camion.getDominio()).isPresent()) {
+            throw new IllegalArgumentException("Ya existe un camión con el dominio: " + camion.getDominio());
+        }
+        
+        // Validar campos obligatorios
+        if (camion.getNombreTransportista() == null || camion.getNombreTransportista().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del transportista es obligatorio");
+        }
+        
+        if (camion.getTelefono() == null || camion.getTelefono().trim().isEmpty()) {
+            throw new IllegalArgumentException("El teléfono es obligatorio");
+        }
+        
+        // Validar valores positivos
+        if (camion.getCapacidadPeso() <= 0) {
+            throw new IllegalArgumentException("La capacidad de peso debe ser mayor a 0");
+        }
+        
+        if (camion.getCapacidadVolumen() <= 0) {
+            throw new IllegalArgumentException("La capacidad de volumen debe ser mayor a 0");
+        }
+        
+        if (camion.getCostos() < 0) {
+            throw new IllegalArgumentException("Los costos no pueden ser negativos");
+        }
+        
         return camionRepository.save(camion);
     }
 
     public Camion updateCamion(String dominio, Camion camion) {
-        Optional<Camion> existingCamionOpt = camionRepository.findById(dominio);
+        Optional<Camion> existingCamionOpt = camionRepository.findByDominio(dominio);
         if (existingCamionOpt.isEmpty()) {
             return null;
         }
@@ -43,18 +75,25 @@ public class CamionService {
         if (camion.getTelefono() != null) {
             existingCamion.setTelefono(camion.getTelefono());
         }
-        existingCamion.setCapacidadPeso(camion.getCapacidadPeso());
-        existingCamion.setCapacidadVolumen(camion.getCapacidadVolumen());
+        if (camion.getCapacidadPeso() > 0) {
+            existingCamion.setCapacidadPeso(camion.getCapacidadPeso());
+        }
+        if (camion.getCapacidadVolumen() > 0) {
+            existingCamion.setCapacidadVolumen(camion.getCapacidadVolumen());
+        }
         existingCamion.setDisponibilidad(camion.isDisponibilidad());
-        existingCamion.setCostos(camion.getCostos());
+        if (camion.getCostos() >= 0) {
+            existingCamion.setCostos(camion.getCostos());
+        }
         return camionRepository.save(existingCamion);
     }
 
     public boolean deleteCamion(String dominio) {
-        if (!camionRepository.existsById(dominio)) {
+        Optional<Camion> camionOpt = camionRepository.findByDominio(dominio);
+        if (camionOpt.isEmpty()) {
             return false;
         }
-        camionRepository.deleteById(dominio);
+        camionRepository.delete(camionOpt.get());
         return true;
     }
 }

@@ -178,7 +178,7 @@ Content-Type: application/json
 **Método:** `POST`  
 **URL:** `http://localhost:8080/api/solicitudes/tramos/{asignacionCamionId}/iniciar`  
 **Ejemplo:** `http://localhost:8080/api/solicitudes/tramos/1/iniciar`  
-**Nota:** El `{asignacionCamionId}` en la URL es el ID que obtuviste del Requerimiento 6  
+**Nota:** `{id}` en la URL corresponde a `asignacionCamionId` (no al `tramoId`). Se obtiene al asignar el camión en el Requerimiento 6.  
 **Body:**
 ```json
 {
@@ -192,7 +192,7 @@ Content-Type: application/json
 **Método:** `POST`  
 **URL:** `http://localhost:8080/api/solicitudes/tramos/{asignacionCamionId}/finalizar`  
 **Ejemplo:** `http://localhost:8080/api/solicitudes/tramos/1/finalizar`  
-**Nota:** El `{asignacionCamionId}` en la URL es el ID que obtuviste del Requerimiento 6  
+**Nota:** `{id}` en la URL corresponde a `asignacionCamionId` (no al `tramoId`). Se obtiene al asignar el camión en el Requerimiento 6.  
 **Body:**
 ```json
 {

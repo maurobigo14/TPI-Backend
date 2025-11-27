@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 🧭 Eureka Server (Registro de servicios)
   eureka-server:

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TramoResponse {
+    private Long id;
     private String origenDireccion;
     private Double origenLat;
     private Double origenLng;

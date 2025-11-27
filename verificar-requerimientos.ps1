@@ -16,7 +16,7 @@ $contenedorId = $null
 $solicitudNumero = $null
 $rutaId = $null
 $tramoId = $null
-$camionDominio = "TEST-CAM-$(Get-Date -Format 'yyyyMMddHHmmss')"
+$camionDominio = "TC" + (Get-Date -Format 'yyMMddHHmm')  # <= 20 chars
 $asignacionId = $null
 
 Write-Host "`n========================================" -ForegroundColor Cyan
@@ -170,14 +170,15 @@ Test-Req -Num 6 -Desc "Asignar camion a un tramo de traslado (Operador)" {
 
 # REQUERIMIENTO 7
 Test-Req -Num 7 -Desc "Determinar inicio o fin de un tramo de traslado (Transportista)" {
-    if (-not $tramoId -or -not $asignacionId) { return $false }
+    # Los endpoints /tramos/{id}/iniciar|finalizar esperan asignacionCamionId en el {id}
+    if (-not $asignacionId) { return $false }
     Write-Host "Iniciando tramo..." -ForegroundColor Gray
     $iniciarBody = @{ asignacionCamionId = $asignacionId; observaciones = "Inicio" }
-    Invoke-Gateway -Method "POST" -Path "/api/solicitudes/tramos/$tramoId/iniciar" -Body $iniciarBody | Out-Null
+    Invoke-Gateway -Method "POST" -Path "/api/solicitudes/tramos/$asignacionId/iniciar" -Body $iniciarBody | Out-Null
     Start-Sleep -Seconds 2
     Write-Host "Finalizando tramo..." -ForegroundColor Gray
     $finalizarBody = @{ asignacionCamionId = $asignacionId; observaciones = "Fin" }
-    $r = Invoke-Gateway -Method "POST" -Path "/api/solicitudes/tramos/$tramoId/finalizar" -Body $finalizarBody
+    $r = Invoke-Gateway -Method "POST" -Path "/api/solicitudes/tramos/$asignacionId/finalizar" -Body $finalizarBody
     Write-Host "  Costo final: `$$($r.costoFinal)" -ForegroundColor Green
     return ($r.costoFinal -ne $null -or $true)
 }
@@ -208,7 +209,8 @@ Test-Req -Num 9 -Desc "Registrar tiempo real y costo real en la solicitud al fin
 # REQUERIMIENTO 10
 Test-Req -Num 10 -Desc "Registrar y actualizar depositos, camiones y tarifas" {
     Write-Host "Probando CRUD..." -ForegroundColor Gray
-    $depositoBody = @{ nombre = "Deposito Test"; direccion = "Calle Test"; ciudad = "BA"; costoEstadiaPorDia = 50.0; capacidadMaxima = 100.0; activo = $true }
+    $depNombre = "Deposito Test " + (Get-Date -Format 'yyyyMMddHHmmss')
+    $depositoBody = @{ nombre = $depNombre; direccion = "Calle Test"; ciudad = "BA"; costoEstadiaPorDia = 50.0; capacidadMaxima = 100.0; activo = $true }
     $dep = Invoke-Gateway -Method "POST" -Path "/api/depositos" -Body $depositoBody
     $depositoBody.nombre = "Actualizado"
     Invoke-Gateway -Method "PUT" -Path "/api/depositos/$($dep.id)" -Body $depositoBody | Out-Null
@@ -229,7 +231,7 @@ Test-Req -Num 10 -Desc "Registrar y actualizar depositos, camiones y tarifas" {
 # REQUERIMIENTO 11
 Test-Req -Num 11 -Desc "Validar que camion no supere capacidad maxima en peso ni volumen" {
     Write-Host "Probando validacion de capacidad..." -ForegroundColor Gray
-    $camionLimitado = "TEST-CAM-LIM-$(Get-Date -Format 'yyyyMMddHHmmss')"
+    $camionLimitado = "TCLIM" + (Get-Date -Format 'yyMMddHHmm')  # <= 20 chars
     $camionBody = @{ dominio = $camionLimitado; nombreTransportista = "Test"; telefono = "1234567890"; capacidadPeso = 100.0; capacidadVolumen = 10.0; disponibilidad = $true; costos = 100.0 }
     try {
         Invoke-Gateway -Method "POST" -Path "/api/camiones" -Body $camionBody | Out-Null

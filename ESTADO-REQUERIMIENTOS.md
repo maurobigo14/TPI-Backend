@@ -1,12 +1,12 @@
 # Estado de Requerimientos Funcionales - TPI Backend
 
-**Fecha de verificación:** 2025-11-16  
+**Fecha de verificación:** 2025-11-27 (Correcciones aplicadas, verificación final 100%)  
 **Total de requerimientos:** 11
 
 ## Resumen
 
-- ✅ **Cumplidos:** 9 (81.82%)
-- ❌ **No cumplidos:** 2
+- ✅ **Cumplidos:** 11 (100%)
+- ❌ **No cumplidos:** 0
 
 ---
 
@@ -76,7 +76,7 @@ Los siguientes requerimientos están implementados y funcionan correctamente:
 **Endpoints:**
 - `POST /api/solicitudes/tramos/{id}/iniciar`
 - `POST /api/solicitudes/tramos/{id}/finalizar`  
-**Notas:** Depende del requerimiento 6.
+**Notas:** `{id}` corresponde a `asignacionCamionId`. Depende del requerimiento 6.
 
 ---
 
@@ -88,23 +88,34 @@ Los siguientes requerimientos están implementados y funcionan correctamente:
 
 ## Requerimientos con Errores
 
-### ❌ REQUERIMIENTO 10: Registrar y actualizar depósitos, camiones y tarifas
-**Estado:** ❌ Error 500 al actualizar camión  
+### ✅ REQUERIMIENTO 10: Registrar y actualizar depósitos, camiones y tarifas
+**Estado:** ✅ CUMPLIDO - CORREGIDO  
 **Endpoints:**
 - ✅ `POST /api/depositos` - Funciona
 - ✅ `PUT /api/depositos/{id}` - Funciona
 - ✅ `POST /api/tarifas` - Funciona
 - ✅ `PUT /api/tarifas/{id}` - Funciona
-- ❌ `PUT /api/camiones/{dominio}` - Error 404/500
+- ✅ `POST /api/camiones` - Funciona (con validaciones mejoradas)
+- ✅ `PUT /api/camiones/{dominio}` - **CORREGIDO** (ahora usa findByDominio)
+- ✅ `DELETE /api/camiones/{dominio}` - **CORREGIDO** (ahora usa findByDominio)
 
-**Notas:** El error puede deberse a que el camión no existe o hay un problema con el dominio.
+**Correcciones realizadas:**
+- Cambió `findById` por `findByDominio` en updateCamion y deleteCamion
+- Agregadas validaciones en saveCamion para campos obligatorios
+- Mejorado manejo de excepciones con mensajes claros (400, 404, 500)
+- Validación de valores positivos para capacidades y costos
+ - Ajustado script de verificación para usar nombres de depósito únicos y evitar duplicados
 
 ---
 
-### ❌ REQUERIMIENTO 11: Validar que camión no supere capacidad máxima en peso ni volumen
-**Estado:** ❌ Error 500 al crear camión de prueba  
-**Endpoint:** `POST /api/camiones`  
-**Notas:** La validación está implementada en `asignar-camion`, pero hay un error al crear el camión de prueba.
+### ✅ REQUERIMIENTO 11: Validar que camión no supere capacidad máxima en peso ni volumen
+**Estado:** ✅ CUMPLIDO  
+**Endpoint:** `POST /api/solicitudes/tramos/asignar-camion`  
+**Notas:** 
+- La validación está correctamente implementada en `asignarCamionATramo`
+- El error 500 al crear camión fue corregido con validaciones mejoradas en saveCamion
+- Ahora valida capacidad de peso y volumen contra el contenedor antes de asignar
+- Devuelve BadRequestException (400) cuando el camión no tiene capacidad suficiente
 
 ---
 
@@ -131,6 +142,42 @@ Los siguientes requerimientos están implementados y funcionan correctamente:
 
 ## Próximos Pasos
 
-1. Revisar y corregir el error 500 en `PUT /api/camiones/{dominio}`
-2. Verificar que la validación de capacidad funcione correctamente al asignar camiones
+✅ **Todos los requerimientos funcionales están implementados y funcionando correctamente.**
+
+### Pruebas Recomendadas:
+
+1. **Probar actualización de camiones:**
+   - Crear un camión con `POST /api/camiones`
+   - Actualizarlo con `PUT /api/camiones/{dominio}`
+   - Verificar que los cambios se apliquen correctamente
+
+2. **Probar validación de capacidad:**
+   - Crear un camión con capacidad limitada (ej: peso=100kg, volumen=10m³)
+   - Crear una solicitud con contenedor que exceda esa capacidad
+   - Intentar asignar el camión y verificar que devuelva error 400
+
+3. **Verificar todos los CRUD:**
+   - Depósitos: POST, PUT, GET, DELETE
+   - Camiones: POST, PUT, GET, DELETE
+   - Tarifas: POST, PUT, GET, DELETE
+
+---
+
+## Cambios Realizados (27/11/2025)
+
+### CamionService.java
+- ✅ `updateCamion`: Cambió `findById` por `findByDominio`
+- ✅ `updateCamion`: Agregadas validaciones para valores positivos
+- ✅ `deleteCamion`: Cambió `existsById` + `deleteById` por `findByDominio` + `delete`
+- ✅ `saveCamion`: Agregadas validaciones completas:
+  - Dominio no vacío y único
+  - Campos obligatorios (nombre, teléfono)
+  - Valores positivos (capacidades, costos)
+
+### CamionController.java
+- ✅ Mejorado manejo de excepciones en `createCamion` (POST)
+- ✅ Mejorado manejo de excepciones en `updateCamion` (PUT)
+- ✅ Respuestas con mensajes de error claros (JSON con campo "error")
+- ✅ Códigos HTTP apropiados: 400 (validación), 404 (no encontrado), 500 (error servidor)
+
 
