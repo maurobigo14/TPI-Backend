@@ -7,11 +7,6 @@ spring:
   cloud:
     compatibility-verifier:
       enabled: false
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://keycloak:8088/realms/tpi
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tpi}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}

@@ -1,10 +1,4 @@
-FROM maven:3.9.4-eclipse-temurin-17 AS build
-WORKDIR /workspace
-COPY pom.xml .
-COPY src ./src
-RUN mvn -B -DskipTests package
-
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
-COPY --from=build /workspace/target/*.jar app.jar
+COPY target/*.jar app.jar
 ENTRYPOINT ["java","-jar","/app/app.jar"]

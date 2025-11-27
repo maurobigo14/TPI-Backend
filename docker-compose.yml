@@ -9,19 +9,6 @@ services:
     networks:
       - backend-net
 
-  # 🔐 Keycloak (Autenticación y Autorización)
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0
-    container_name: keycloak
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-    command: ["start-dev"]
-    ports:
-      - "8088:8080"
-    networks:
-      - backend-net
-
   # 🌐 API Gateway
   api-gateway:
     build: ./api-gateway

@@ -2,12 +2,6 @@ spring:
   application:
     name: deposito-service
   
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://keycloak:8088/realms/tpi
-          
   datasource:
     url: jdbc:postgresql://localhost:5432/deposito_db
     username: deposito_user
