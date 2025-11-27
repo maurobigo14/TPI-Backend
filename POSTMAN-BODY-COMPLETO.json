@@ -1,0 +1,22 @@
+{
+  "cliente": {
+    "dni": "12345678",
+    "nombre": "Juan",
+    "apellido": "Perez",
+    "email": "juan.perez@example.com",
+    "telefono": "1234567890"
+  },
+  "contenedor": {
+    "identificacion": "CONT-001",
+    "pesoKg": 500.0,
+    "volumenM3": 30.0,
+    "descripcion": "Contenedor estandar"
+  },
+  "origenDireccion": "Buenos Aires, Argentina",
+  "origenLat": -34.6037,
+  "origenLng": -58.3816,
+  "destinoDireccion": "Rosario, Argentina",
+  "destinoLat": -32.9442,
+  "destinoLng": -60.6505
+}
+
