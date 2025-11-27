@@ -121,6 +121,21 @@ Content-Type: application/json
 
 **Respuesta esperada:** Lista de contenedores pendientes
 
+**Nota:** Si la lista está vacía, puedes crear un contenedor con estado `EN_TRANSITO`:
+- **Método:** `POST`
+- **URL:** `http://localhost:8080/api/contenedores`
+- **Body:**
+```json
+{
+  "numeroIdentificacion": "CONT-001",
+  "peso": 500,
+  "volumen": 30,
+  "estado": "EN_TRANSITO",
+  "clienteDni": "12345678",
+  "solicitudId": 1
+}
+```
+
 ---
 
 ## ✅ REQUERIMIENTO 6: Asignar camión a tramo (Operador)
@@ -161,8 +176,9 @@ Content-Type: application/json
 
 **Iniciar tramo:**
 **Método:** `POST`  
-**URL:** `http://localhost:8080/api/solicitudes/tramos/{tramoId}/iniciar`  
+**URL:** `http://localhost:8080/api/solicitudes/tramos/{asignacionCamionId}/iniciar`  
 **Ejemplo:** `http://localhost:8080/api/solicitudes/tramos/1/iniciar`  
+**Nota:** El `{asignacionCamionId}` en la URL es el ID que obtuviste del Requerimiento 6  
 **Body:**
 ```json
 {
@@ -170,11 +186,13 @@ Content-Type: application/json
   "observaciones": "Inicio de tramo"
 }
 ```
+**Nota:** El `asignacionCamionId` en el body debe coincidir con el de la URL
 
 **Finalizar tramo:**
 **Método:** `POST`  
-**URL:** `http://localhost:8080/api/solicitudes/tramos/{tramoId}/finalizar`  
+**URL:** `http://localhost:8080/api/solicitudes/tramos/{asignacionCamionId}/finalizar`  
 **Ejemplo:** `http://localhost:8080/api/solicitudes/tramos/1/finalizar`  
+**Nota:** El `{asignacionCamionId}` en la URL es el ID que obtuviste del Requerimiento 6  
 **Body:**
 ```json
 {
@@ -182,6 +200,7 @@ Content-Type: application/json
   "observaciones": "Fin de tramo"
 }
 ```
+**Nota:** El `asignacionCamionId` en el body debe coincidir con el de la URL
 
 **Respuesta esperada:** `costoFinal` calculado
 
@@ -325,7 +344,7 @@ Content-Type: application/json
 3. **Requerimiento 3** - Rutas tentativas
 4. **Requerimiento 4** - Asignar ruta (guarda el `tramoId`)
 5. **Requerimiento 5** - Contenedores pendientes
-6. **Requerimiento 6** - Crear camión y asignarlo (guarda el `asignacionId`)
+6. **Requerimiento 6** - Crear camión y asignarlo (guarda el `asignacionId` o `asignacionCamionId`)
 7. **Requerimiento 7** - Iniciar y finalizar tramo
 8. **Requerimiento 8** - Calcular costo
 9. **Requerimiento 9** - Ver tiempo/costo real
@@ -337,7 +356,7 @@ Content-Type: application/json
 ## ⚠️ Notas Importantes
 
 - **Autenticación:** ✅ DESHABILITADA - Puedes probar todos los endpoints sin tokens
-- **IDs:** Guarda los IDs que devuelven las respuestas (`numero`, `tramoId`, `asignacionId`, etc.) para usarlos en los siguientes pasos
+- **IDs:** Guarda los IDs que devuelven las respuestas (`numero`, `tramoId`, `asignacionId` o `asignacionCamionId`, etc.) para usarlos en los siguientes pasos
 - **Errores comunes:**
    - 404: El recurso no existe (verifica que hayas creado los datos previos)
    - 400: Datos inválidos (revisa el formato del JSON)
