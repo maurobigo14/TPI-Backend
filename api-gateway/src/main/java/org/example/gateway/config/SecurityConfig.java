@@ -2,29 +2,49 @@ package org.example.gateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 
 import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
+@EnableWebFluxSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public ReactiveJwtDecoder jwtDecoder() {
+        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
+            .withJwkSetUri("http://keycloak:8080/realms/tpi/protocol/openid-connect/certs")
+            .jwsAlgorithm(SignatureAlgorithm.RS256)
+            .build();
+        
+        // No validar issuer - solo firma y expiración
+        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer("http://localhost:8088/realms/tpi"));
+        
+        return jwtDecoder;
+    }
+
+    @Bean
+    public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
 
         http
             // El gateway NO necesita CSRF
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(ServerHttpSecurity.CsrfSpec::disable)
 
-            .authorizeHttpRequests(auth -> auth
+            .authorizeExchange(exchange -> exchange
                 // 🔓 Endpoints públicos
-                .requestMatchers(
+                .pathMatchers(
                     "/actuator/health",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
@@ -32,13 +52,14 @@ public class SecurityConfig {
                 ).permitAll()
 
                 // 🔒 TODO lo demás requiere token válido
-                .anyRequest().authenticated()
+                .anyExchange().authenticated()
             )
 
             // Habilitar JWT como resource server
             .oauth2ResourceServer(oauth2 ->
                 oauth2.jwt(jwt ->
-                    jwt.jwtAuthenticationConverter(jwtAuthConverter())
+                    jwt.jwtAuthenticationConverter(reactiveJwtAuthConverter())
+                       .jwtDecoder(jwtDecoder())
                 )
             );
 
@@ -46,13 +67,12 @@ public class SecurityConfig {
     }
 
     // Convertir los roles de Keycloak a roles de Spring ("ROLE_...")
+    @SuppressWarnings("unchecked")
     @Bean
-    public JwtAuthenticationConverter jwtAuthConverter() {
-
+    public ReactiveJwtAuthenticationConverterAdapter reactiveJwtAuthConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
 
             if (realmAccess == null || realmAccess.get("roles") == null) {
@@ -67,6 +87,6 @@ public class SecurityConfig {
                 .collect(Collectors.toList());
         });
 
-        return converter;
+        return new ReactiveJwtAuthenticationConverterAdapter(converter);
     }
 }

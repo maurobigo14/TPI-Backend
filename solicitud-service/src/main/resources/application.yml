@@ -5,7 +5,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8088/realms/tpi
+          jwk-set-uri: http://keycloak:8080/realms/tpi/protocol/openid-connect/certs
+          issuer-uri: http://localhost:8088/realms/tpi
   datasource:
     url: jdbc:postgresql://localhost:5432/solicitud_db
     username: solicitud_user

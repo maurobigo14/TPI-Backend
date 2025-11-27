@@ -11,8 +11,9 @@ eureka:
 spring:
   application:
     name: eureka-server
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://keycloak:8088/realms/tpi
+  # Security disabled for Eureka - internal service discovery only
+  # security:
+  #   oauth2:
+  #     resourceserver:
+  #       jwt:
+  #         issuer-uri: http://keycloak:8088/realms/tpi
