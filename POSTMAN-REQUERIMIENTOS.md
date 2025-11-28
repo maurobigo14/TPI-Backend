@@ -264,7 +264,6 @@ Content-Type: application/json
 
 **Actualizar:**
 - **Método:** `PUT`
-- **URL:** `http://localhost:8080/api/camiones/{dominio}`
 - **Ejemplo:** `http://localhost:8080/api/camiones/ABC123`
 - **Body:**
 ```json
@@ -303,14 +302,10 @@ Content-Type: application/json
 
 ---
 
-## ✅ REQUERIMIENTO 11: Validar capacidad máxima
 
 **Crear camión con capacidad limitada:**
-- **Método:** `POST`
 - **URL:** `http://localhost:8080/api/camiones`
 - **Body:**
-```json
-{
   "dominio": "LIM-001",
   "nombreTransportista": "Test",
   "telefono": "1234567890",

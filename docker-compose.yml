@@ -1,4 +1,40 @@
 services:
+  # 🔐 Keycloak Identity Provider
+  keycloak-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=keycloak_db
+      - POSTGRES_USER=keycloak_user
+      - POSTGRES_PASSWORD=keycloak_pass
+    volumes:
+      - keycloak-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.2
+    command: ["start-dev", "--http-relative-path=/", "--import-realm"]
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=keycloak-db
+      - KC_DB_URL_DATABASE=keycloak_db
+      - KC_DB_USERNAME=keycloak_user
+      - KC_DB_PASSWORD=keycloak_pass
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_PORT=8088
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - JAVA_OPTS=-Xms256m -Xmx512m -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -XX:MinRAMPercentage=20
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import:ro
+    depends_on:
+      - keycloak-db
+    networks:
+      - backend-net
   # 🧭 Eureka Server (Registro de servicios)
   eureka-server:
     build: ./eureka-server
@@ -14,8 +50,11 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - OIDC_ISSUER_URI=http://keycloak:8080/realms/tpi-realm
+      - OIDC_JWKS_URI=http://keycloak:8080/realms/tpi-realm/protocol/openid-connect/certs
     depends_on:
       - eureka-server
+      - keycloak
     networks:
       - backend-net
 
@@ -137,9 +176,13 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://solicitud-db:5432/solicitud_db
       - SPRING_DATASOURCE_USERNAME=solicitud_user
       - SPRING_DATASOURCE_PASSWORD=solicitud_pass
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
+      - OIDC_ISSUER_URI=http://keycloak:8080/realms/tpi-realm
+      - OIDC_JWKS_URI=http://keycloak:8080/realms/tpi-realm/protocol/openid-connect/certs
     depends_on:
       - solicitud-db
       - eureka-server
+      - keycloak
     networks:
       - backend-net
 
@@ -164,9 +207,12 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ruta-db:5432/ruta_db
       - SPRING_DATASOURCE_USERNAME=ruta_user
       - SPRING_DATASOURCE_PASSWORD=ruta_pass
+      - OIDC_ISSUER_URI=http://keycloak:8080/realms/tpi-realm
+      - OIDC_JWKS_URI=http://keycloak:8080/realms/tpi-realm/protocol/openid-connect/certs
     depends_on:
       - ruta-db
       - eureka-server
+      - keycloak
     networks:
       - backend-net
 
@@ -191,10 +237,14 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://tarifa-db:5432/tarifa_db
       - SPRING_DATASOURCE_USERNAME=tarifa_user
       - SPRING_DATASOURCE_PASSWORD=tarifa_pass
+      - OIDC_ISSUER_URI=http://keycloak:8080/realms/tpi-realm
+      - OIDC_JWKS_URI=http://keycloak:8080/realms/tpi-realm/protocol/openid-connect/certs
     depends_on:
       tarifa-db:
         condition: service_healthy
       eureka-server:
+        condition: service_started
+      keycloak:
         condition: service_started
     networks:
       - backend-net
@@ -224,6 +274,7 @@ volumes:
   solicitud-data:
   ruta-data:
   tarifa-data:
+  keycloak-data:
 
 # 🌐 Red compartida entre servicios
 networks:

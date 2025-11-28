@@ -19,6 +19,25 @@ $tramoId = $null
 $camionDominio = "TC" + (Get-Date -Format 'yyMMddHHmm')  # <= 20 chars
 $asignacionId = $null
 
+# Obtener token de Keycloak (usuario OPERADOR)
+function Get-AccessToken {
+    param(
+        [string]$Username,
+        [string]$Password
+    )
+    $tokenUrl = "http://localhost:8088/realms/tpi-realm/protocol/openid-connect/token"
+    $body = "grant_type=password&client_id=api-gateway&username=$Username&password=$Password"
+    try {
+        $resp = Invoke-RestMethod -Method Post -Uri $tokenUrl -ContentType 'application/x-www-form-urlencoded' -Body $body -ErrorAction Stop
+        return $resp.access_token
+    } catch {
+        Write-Host "[WARN] No se pudo obtener token de Keycloak: $_" -ForegroundColor Yellow
+        return $null
+    }
+}
+
+$script:accessToken = Get-AccessToken -Username "operador" -Password "Operador123!"
+
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "  VERIFICACION DE REQUERIMIENTOS" -ForegroundColor Cyan
 Write-Host "  TPI BACKEND - 11 Requerimientos" -ForegroundColor Cyan
@@ -40,6 +59,10 @@ function Invoke-Gateway {
             Accept = "application/json"
         }
         ErrorAction = "Stop"
+    }
+
+    if ($script:accessToken) {
+        $params.Headers["Authorization"] = "Bearer $script:accessToken"
     }
     
     if ($Body -ne $null) {
@@ -173,12 +196,14 @@ Test-Req -Num 7 -Desc "Determinar inicio o fin de un tramo de traslado (Transpor
     # Los endpoints /tramos/{id}/iniciar|finalizar esperan asignacionCamionId en el {id}
     if (-not $asignacionId) { return $false }
     Write-Host "Iniciando tramo..." -ForegroundColor Gray
+    $transportistaToken = Get-AccessToken -Username "transportista" -Password "Transportista123!"
     $iniciarBody = @{ asignacionCamionId = $asignacionId; observaciones = "Inicio" }
-    Invoke-Gateway -Method "POST" -Path "/api/solicitudes/tramos/$asignacionId/iniciar" -Body $iniciarBody | Out-Null
+    $headers = @{ Accept = "application/json"; Authorization = "Bearer $transportistaToken" }
+    Invoke-RestMethod -Method "POST" -Uri "$BaseUrl/api/solicitudes/tramos/$asignacionId/iniciar" -Headers $headers -ContentType "application/json" -Body ($iniciarBody | ConvertTo-Json -Depth 10) | Out-Null
     Start-Sleep -Seconds 2
     Write-Host "Finalizando tramo..." -ForegroundColor Gray
     $finalizarBody = @{ asignacionCamionId = $asignacionId; observaciones = "Fin" }
-    $r = Invoke-Gateway -Method "POST" -Path "/api/solicitudes/tramos/$asignacionId/finalizar" -Body $finalizarBody
+    $r = Invoke-RestMethod -Method "POST" -Uri "$BaseUrl/api/solicitudes/tramos/$asignacionId/finalizar" -Headers $headers -ContentType "application/json" -Body ($finalizarBody | ConvertTo-Json -Depth 10)
     Write-Host "  Costo final: `$$($r.costoFinal)" -ForegroundColor Green
     return ($r.costoFinal -ne $null -or $true)
 }

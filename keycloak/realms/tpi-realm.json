@@ -1,0 +1,85 @@
+{
+  "realm": "tpi-realm",
+  "enabled": true,
+  "displayName": "TPI Realm",
+  "registrationAllowed": false,
+  "rememberMe": true,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "sslRequired": "NONE",
+  "accessTokenLifespan": 3600,
+  "roles": {
+    "realm": [
+      { "name": "ADMIN", "description": "Administrador" },
+      { "name": "OPERADOR", "description": "Operador" },
+      { "name": "TRANSPORTISTA", "description": "Transportista" },
+      { "name": "CLIENTE", "description": "Cliente" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "api-gateway",
+      "name": "API Gateway",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "http://api-gateway:8080/*"
+      ],
+      "webOrigins": ["*"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "Admin123!", "temporary": false }],
+      "requiredActions": [],
+      "realmRoles": ["ADMIN"]
+    },
+    {
+      "username": "operador",
+      "enabled": true,
+      "email": "operador@example.com",
+      "emailVerified": true,
+      "firstName": "Operador",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "Operador123!", "temporary": false }],
+      "requiredActions": [],
+      "realmRoles": ["OPERADOR"]
+    },
+    {
+      "username": "transportista",
+      "enabled": true,
+      "email": "transportista@example.com",
+      "emailVerified": true,
+      "firstName": "Transportista",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "Transportista123!", "temporary": false }],
+      "requiredActions": [],
+      "realmRoles": ["TRANSPORTISTA"]
+    },
+    {
+      "username": "cliente",
+      "enabled": true,
+      "email": "cliente@example.com",
+      "emailVerified": true,
+      "firstName": "Cliente",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "Cliente123!", "temporary": false }],
+      "requiredActions": [],
+      "realmRoles": ["CLIENTE"]
+    }
+  ]
+}

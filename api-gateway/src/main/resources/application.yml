@@ -1,6 +1,11 @@
 spring:
   application:
     name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OIDC_JWKS_URI:http://keycloak:8080/realms/tpi-realm/protocol/openid-connect/certs}
     
   cloud:
     gateway:
